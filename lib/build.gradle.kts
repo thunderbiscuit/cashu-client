@@ -3,6 +3,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent.*
 
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.8.10"
+    kotlin("plugin.serialization") version "1.8.10"
     id("java-library")
     id("maven-publish")
 }
@@ -11,7 +12,12 @@ repositories {
     mavenCentral()
 }
 
-dependencies {}
+dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
+
+    // TODO: Why isn't this needed?
+    // testImplementation(kotlin("test"))
+}
 
 testing {
     suites {
@@ -40,6 +46,9 @@ java {
     }
 }
 
+kotlin {
+    explicitApi()
+}
 
 publishing {
     publications {
