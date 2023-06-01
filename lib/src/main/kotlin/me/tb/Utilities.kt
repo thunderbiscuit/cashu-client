@@ -1,5 +1,7 @@
 package me.tb
 
+import fr.acinq.bitcoin.PublicKey
+import fr.acinq.bitcoin.crypto.Digest
 import kotlin.math.pow
 
 /**
@@ -21,4 +23,26 @@ public fun splitAmount(value: Long): List<Long> {
         }
     }
     return chunks
+}
+
+/**
+ * Given a message, deterministically return a valid point on the secp256k1 curve.
+ */
+public fun hashToCurve(message: ByteArray): PublicKey {
+    var point: PublicKey? = null
+    var msgToHash: ByteArray = message
+
+    while (point == null || !point.isValid()) {
+        val hash: ByteArray = Digest.sha256().hash(msgToHash)
+
+        // The point on the curve will always have an even y-coordinate (0x02 prefix)
+        // For more information as to why this doesn't impact security, see: https://github.com/cashubtc/nuts/issues/24
+        point = PublicKey(byteArrayOf(0x02) + hash)
+
+        // If the hash of the message did not produce a valid point, we hash the hash and try again
+        if (!point.isValid()) {
+            msgToHash = hash
+        }
+    }
+    return point
 }

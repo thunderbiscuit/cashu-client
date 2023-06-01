@@ -14,6 +14,8 @@ repositories {
 
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
+    implementation("fr.acinq.bitcoin:bitcoin-kmp-jvm:0.12.0")
+    implementation("fr.acinq.secp256k1:secp256k1-kmp-jni-jvm-darwin:0.10.0")
 
     // TODO: Why isn't this needed?
     // testImplementation(kotlin("test"))
