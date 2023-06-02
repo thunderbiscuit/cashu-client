@@ -9,6 +9,8 @@ import java.security.SecureRandom
  * @param secret The secret x that is used in hashToCurve(x) to create Y
  * @param blindedSecret The blinded secret B_ that is sent to the mint
  * @param blindingFactor The blinding factor r, private key of the point R that is used to blind key Y
+ *
+ * TODO: Open issue in spec about exact name for the B_ key.
  */
 public class PreMintBundle private constructor(
     public val secret: Secret,
