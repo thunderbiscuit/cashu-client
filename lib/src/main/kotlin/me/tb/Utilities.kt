@@ -2,6 +2,7 @@ package me.tb
 
 import fr.acinq.bitcoin.PublicKey
 import fr.acinq.bitcoin.crypto.Digest
+import java.security.SecureRandom
 import kotlin.math.pow
 
 /**
@@ -45,4 +46,11 @@ public fun hashToCurve(message: ByteArray): PublicKey {
         }
     }
     return point
+}
+
+public fun randomBytes(size: Int): ByteArray {
+    val random = SecureRandom()
+    val secret = ByteArray(size)
+    random.nextBytes(secret)
+    return secret
 }
