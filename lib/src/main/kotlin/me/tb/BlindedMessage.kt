@@ -22,9 +22,9 @@ public data class BlindedMessage(
  *       NUT-03 has been sent) rather than what it is. `MintRequest` is, IMO, a better name.
  *       See cashu-rs which also chose that name.
  *
- * @param blindedMessages List of blinded messages to be signed.
+ * @param outputs List of blinded messages to be signed.
  */
 @Serializable
 public data class MintRequest(
-    val blindedMessages: List<BlindedMessage>,
+    val outputs: List<BlindedMessage>,
 )
