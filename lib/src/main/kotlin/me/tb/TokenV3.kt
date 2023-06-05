@@ -1,5 +1,6 @@
 package me.tb
 
+import fr.acinq.bitcoin.PublicKey
 import kotlinx.serialization.SerialName
 import java.util.Base64
 import kotlinx.serialization.Serializable
@@ -42,7 +43,7 @@ public data class TokenV3(
     /**
      * Returns the total value of the token.
      */
-    public fun getAmount(): Int {
+    public fun getAmount(): Long {
         return tokenEntries.sumOf { tokenEntry ->
             tokenEntry.proofs.sumOf { proof ->
                 proof.amount
@@ -56,15 +57,4 @@ public data class TokenV3(
 public data class TokenEntry(
     public val mint: String? = null,
     public val proofs: List<Proof>,
-)
-
-/**
- * Value token.
- */
-@Serializable
-public data class Proof(
-    public val id: String,
-    public val amount: Int,
-    public val secret: String,
-    public val C: String,
 )
