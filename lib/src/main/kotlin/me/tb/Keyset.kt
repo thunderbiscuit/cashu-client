@@ -79,6 +79,6 @@ public class Keyset(keyset: Map<ULong, PublicKey>) {
 @JvmInline
 public value class KeysetId(public val value: String) {
     init {
-        // require(keysetId.length == 12) { "Invalid length for keyset id: ${keysetId.length}, must be 12 characters (6 bytes)" }
+        require(value.length == 12) { "Invalid length for keyset id: $value, must be 12 base64 characters (9 bytes)" }
     }
 }
