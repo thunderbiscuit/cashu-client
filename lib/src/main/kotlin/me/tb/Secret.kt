@@ -6,8 +6,18 @@ import java.security.SecureRandom
 //       Maybe only accepting base64 encoded strings would be better?
 //       It also feels like we should require secrets to be a certain size, otherwise they'd be easy to brute force?
 //       The issue is that test vectors in other libraries use secrets that are quite short
+
+/**
+ * Secret used to generate a token. This is the x in NUT-00, the bytes we'll use in the [hashToCurve] function
+ * to generate key Y.
+ *
+ * @param secret The secret to use. If null or blank, a random secret will be generated.
+ */
 public class Secret(secret: String?) {
     public val value: ByteArray = generateSecret(secret)
+
+    // TODO: Should maybe look at building a second constructor that takes the secret
+    //       as a String and keep the primary constructor building using randomly generated secrets.
 
     // init {
     //     require(secret.isNullOrBlank() || secret.length >= 32) { "Secret must be at least 32 bytes long" }

@@ -14,7 +14,7 @@ class KeysetTest {
         Keyset.fromJson(jsonString)
     }
 
-    // The key #2 is missing its last byte
+    // The key #2 is missing its last byte.
     @Test
     fun `Attempting to build keyset from malformed json object`() {
         assertFailsWith<IllegalArgumentException> {

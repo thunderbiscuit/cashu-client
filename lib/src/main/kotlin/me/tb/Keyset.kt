@@ -7,6 +7,12 @@ import fr.acinq.bitcoin.crypto.Digest
 import java.util.SortedMap
 import java.util.Base64
 
+/**
+ * A keyset is a set of public keys, each associated with a token value. The mint uses the key appropriate to the amount
+ * to perform the signature on the corresponding blinded message.
+ *
+ * @param keyset A map of token values to public keys.
+ */
 public class Keyset(keyset: Map<ULong, PublicKey>) {
     init {
         keyset.forEach { (value, publicKey) ->
@@ -34,11 +40,24 @@ public class Keyset(keyset: Map<ULong, PublicKey>) {
         return KeysetId(base64String)
     }
 
+    /**
+     * Get the [PublicKey] for a given token value.
+     *
+     * @param tokenValue The token value to get the key for.
+     * @return The [PublicKey] for the given token value.
+     * @throws Exception if no key is found for the given token value.
+     */
     public fun getKey(tokenValue: ULong): PublicKey {
         return sortedKeyset[tokenValue] ?: throw Exception("No key found in keyset for token value $tokenValue")
     }
 
     public companion object {
+        /**
+         * Create a [Keyset] from a JSON string.
+         *
+         * @param jsonString The JSON string to create the [Keyset] from.
+         * @return The [Keyset] created from the JSON string.
+         */
         public fun fromJson(jsonString: String): Keyset {
             val typeToken = object : TypeToken<Map<String, String>>() {}.type
             val json: Map<String, String> = Gson().fromJson(jsonString, typeToken)
@@ -52,6 +71,11 @@ public class Keyset(keyset: Map<ULong, PublicKey>) {
     }
 }
 
+/**
+ * A [KeysetId] is a unique identifier for a [Keyset].
+ *
+ * @param value The value of the [KeysetId], a base64 encoded String.
+ */
 @JvmInline
 public value class KeysetId(public val value: String) {
     init {

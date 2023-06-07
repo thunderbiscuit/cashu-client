@@ -3,9 +3,7 @@ package me.tb
 import kotlinx.serialization.Serializable
 
 /**
- * Value token.
- *
- * TODO: Should all amounts be Longs? Look into this.
+ * Cashu token.
  */
 @Serializable
 public data class Proof(

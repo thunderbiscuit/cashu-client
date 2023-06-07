@@ -7,10 +7,6 @@ import kotlin.math.pow
 
 /**
  * Given a total amount, returns the shortest list of token values to create this total, e.g. 13 is [1, 4, 8].
- *
- * TODO: After seeing that the default mint on the Python cashu implementation returns
- *       keys for 64 bit integers I'm choosing Long as the type here, but keep in mind that because the amounts
- *       are a mint policy, this library will need more resilience against mints that support different token amounts.
  */
 public fun splitAmount(value: Long): List<Long> {
     require(value != 0L) { "Zero amounts do not make sense in this context." }

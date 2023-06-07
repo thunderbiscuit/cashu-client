@@ -4,11 +4,11 @@ import kotlinx.serialization.Serializable
 import fr.acinq.bitcoin.PublicKey
 
 /**
- * This is the smallest unit of data returned by the mint endpoint. These aggregate into a [BlindedSignatures] object.
+ * This is the smallest unit of data returned by the mint endpoint. These aggregate into a [MintResponse] object.
  *
  * @param amount The value of the token.
  * @param blindedKey The blinded signature, a point on the curve referred to as C_ in the spec (NUT-00).
- * @param id The id of the keyset of the mint public keys that signed the token.
+ * @param id The id of the keyset of the mint that signed the token.
  */
 @Serializable
 public data class BlindedSignature(
