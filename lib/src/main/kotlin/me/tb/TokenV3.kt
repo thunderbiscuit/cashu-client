@@ -1,6 +1,5 @@
 package me.tb
 
-import fr.acinq.bitcoin.PublicKey
 import kotlinx.serialization.SerialName
 import java.util.Base64
 import kotlinx.serialization.Serializable
@@ -43,13 +42,17 @@ public data class TokenV3(
     /**
      * Returns the total value of the token.
      */
-    public fun getAmount(): Long {
+    public fun getAmount(): ULong {
         return tokenEntries.sumOf { tokenEntry ->
             tokenEntry.proofs.sumOf { proof ->
                 proof.amount
             }
         }
     }
+
+    // public fun toJson(): String {
+    //     return Json.encodeToString(serializer(), this)
+    // }
 }
 
 // TODO: Having the mint as an element to each TokenEntry implies a token can be composed of multiple tokens from different mints?

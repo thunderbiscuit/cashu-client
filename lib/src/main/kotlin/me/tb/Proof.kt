@@ -7,9 +7,9 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 public data class Proof(
-    public val amount: Long,
+    public val id: String,
+    public val amount: ULong,
     public val secret: String,
     public val C: String,
-    public val id: String,
     public val script: String? = null
 )
