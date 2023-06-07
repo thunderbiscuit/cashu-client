@@ -12,7 +12,7 @@ import fr.acinq.bitcoin.PublicKey
  */
 @Serializable
 public data class BlindedSignature(
-    val amount: Long,
+    val amount: ULong,
     val blindedKey: String,
     val id: Long
 ) {

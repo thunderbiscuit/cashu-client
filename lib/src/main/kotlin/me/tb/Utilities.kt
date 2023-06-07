@@ -8,15 +8,15 @@ import kotlin.math.pow
 /**
  * Given a total amount, returns the shortest list of token values to create this total, e.g. 13 is [1, 4, 8].
  */
-public fun splitAmount(value: Long): List<Long> {
-    require(value != 0L) { "Zero amounts do not make sense in this context." }
-    require(value > 0L) { "Negative amounts do not make sense in this context." }
+public fun splitAmount(value: ULong): List<ULong> {
+    require(value != 0uL) { "Zero amounts do not make sense in this context." }
+    require(value > 0uL) { "Negative amounts do not make sense in this context." }
 
-    val chunks: MutableList<Long> = mutableListOf()
-    for (i: Int in 0 until 32) {
-        val mask: Long = 1L shl i
-        if ((value and mask) != 0L) {
-            chunks.add(2.0.pow(i).toLong())
+    val chunks: MutableList<ULong> = mutableListOf()
+    for (i: Int in 0 until ULong.SIZE_BITS) {
+        val mask: ULong = 1uL shl i
+        if ((value and mask) != 0uL) {
+            chunks.add(2.0.pow(i).toULong())
         }
     }
     return chunks

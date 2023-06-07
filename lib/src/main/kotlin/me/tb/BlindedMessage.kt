@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 public data class BlindedMessage(
-    val amount: Long,
+    val amount: ULong,
     val blindedSecret: String
 )
 

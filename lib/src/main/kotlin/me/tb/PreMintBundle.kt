@@ -33,13 +33,13 @@ public class PreMintBundle(
  * @param blindingFactor The blinding factor r, private key of the point R that is used to blind key Y.
  */
 public class PreMintItem private constructor (
-    public val amount: Long,
-    public val secret: Secret,
+    public val amount: ULong,
+    private val secret: Secret,
     public val blindedSecret: PublicKey,
     public val blindingFactor: PrivateKey
 ) {
     public companion object {
-        public fun create(amount: Long, secret: Secret, blindingFactorBytes: ByteArray?): PreMintItem {
+        public fun create(amount: ULong, secret: Secret, blindingFactorBytes: ByteArray?): PreMintItem {
             require(blindingFactorBytes == null || blindingFactorBytes.size == 32) { "Blinding factor must be 32 bytes long because it's a private key" }
 
             val blindingFactorBytes = blindingFactorBytes ?: randomBytes(32)

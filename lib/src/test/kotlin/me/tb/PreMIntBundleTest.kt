@@ -9,7 +9,7 @@ class PreMintBundleTest {
     fun `PreMint item is correctly initialized 1`() {
         val secret = Secret(secret = "test_message")
         val preMintItem: PreMintItem = PreMintItem.create(
-            amount = 1,
+            amount = 1uL,
             secret = secret,
             blindingFactorBytes = Hex.decode("0000000000000000000000000000000000000000000000000000000000000001")
         )
@@ -24,7 +24,7 @@ class PreMintBundleTest {
     fun `PreMint item is correctly initialized 2`() {
         val secret = Secret(secret = "hello")
         val preMintItem: PreMintItem = PreMintItem.create(
-            amount = 1,
+            amount = 1uL,
             secret = secret,
             blindingFactorBytes = Hex.decode("6d7e0abffc83267de28ed8ecc8760f17697e51252e13333ba69b4ddad1f95d05")
         )
