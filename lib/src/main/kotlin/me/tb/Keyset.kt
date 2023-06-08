@@ -16,7 +16,7 @@ import java.util.Base64
 public class Keyset(keyset: Map<ULong, PublicKey>) {
     init {
         keyset.forEach { (value, publicKey) ->
-            require(publicKey.isValid()) { "Invalid public key $publicKey (hex: ${publicKey.toHex()} for value $value." }
+            require(publicKey.isValid()) { "Invalid public key $publicKey (hex: ${publicKey.toHex()}) for value $value." }
         }
     }
 

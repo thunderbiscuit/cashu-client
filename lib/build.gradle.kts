@@ -15,8 +15,19 @@ repositories {
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
     implementation("com.google.code.gson:gson:2.10.1")
+
+    // Bitcoin
     implementation("fr.acinq.bitcoin:bitcoin-kmp-jvm:0.12.0")
     implementation("fr.acinq.secp256k1:secp256k1-kmp-jni-jvm-darwin:0.10.0")
+
+    // Exposed
+    implementation("org.jetbrains.exposed:exposed-core:0.40.1")
+    implementation("org.jetbrains.exposed:exposed-dao:0.40.1")
+    implementation("org.jetbrains.exposed:exposed-jdbc:0.40.1")
+    implementation("org.jetbrains.exposed:exposed-java-time:0.40.1")
+
+    // SQLite
+    implementation("org.xerial:sqlite-jdbc:3.42.0.0")
 
     // TODO: Why isn't this needed?
     // testImplementation(kotlin("test"))
