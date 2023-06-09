@@ -29,6 +29,14 @@ dependencies {
     // SQLite
     implementation("org.xerial:sqlite-jdbc:3.42.0.0")
 
+    // Ktor
+    implementation("io.ktor:ktor-client-core-jvm:2.3.1")
+    implementation("io.ktor:ktor-client-okhttp:2.3.1")
+    implementation("io.ktor:ktor-client-logging:2.3.1")
+
+    // TODO: Consider adding logging
+    // implementation("ch.qos.logback:logback-classic:1.2.9")
+
     // TODO: Why isn't this needed?
     // testImplementation(kotlin("test"))
 }

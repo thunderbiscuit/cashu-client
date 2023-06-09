@@ -5,6 +5,7 @@ import fr.acinq.bitcoin.PublicKey
 import fr.acinq.secp256k1.Hex
 import me.tb.mockmint.MockMint
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class WalletTest {
     @Test
@@ -77,5 +78,41 @@ class WalletTest {
             mintUrl = "mockmint"
         )
         wallet.processMintResponse(preMintBundle, mintResponse)
+    }
+
+    @Test
+    fun `Wallet successfully updates active keyset from mint after requesting it`() {
+        val jsonString = """{"1":"03142715675faf8da1ecc4d51e0b9e539fa0d52fdd96ed60dbe99adb15d6b05ad9"}"""
+        val smallKeyset = Keyset.fromJson(jsonString)
+        val wallet = Wallet(activeKeyset = smallKeyset, mintUrl = "https://8333.space:3338")
+
+        // At this point the wallet keyset should not be the same as the TEST_KEYSET
+        assertEquals<Boolean>(
+            expected = false,
+            actual = Keyset.fromJson(TEST_KEYSET) == wallet.activeKeyset
+        )
+
+        // Now we request the active keyset from the mint
+        wallet.getActiveKeyset()
+
+        assertEquals<Keyset>(
+            expected = Keyset.fromJson(TEST_KEYSET),
+            actual = wallet.activeKeyset!!
+        )
+    }
+
+    @Test
+    fun `Wallet adds old keyset to list of inactive keysets`() {
+        val jsonString = """{"1":"03142715675faf8da1ecc4d51e0b9e539fa0d52fdd96ed60dbe99adb15d6b05ad9"}"""
+        val smallKeyset = Keyset.fromJson(jsonString)
+        val wallet = Wallet(activeKeyset = smallKeyset, mintUrl = "https://8333.space:3338")
+
+        // Now we request the active keyset from the mint
+        wallet.getActiveKeyset()
+
+        assertEquals<Keyset>(
+            expected = smallKeyset,
+            actual = wallet.inactiveKeysets.first()
+        )
     }
 }

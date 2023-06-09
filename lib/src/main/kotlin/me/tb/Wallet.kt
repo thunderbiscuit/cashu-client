@@ -7,18 +7,35 @@ import me.tb.db.DBSettings
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.transaction
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.okhttp.*
+import kotlinx.coroutines.*
 
 public class Wallet(
-    private var activeKeyset: Keyset? = null,
+    public var activeKeyset: Keyset? = null,
     private val mintUrl: String,
 ) {
-    private var inactiveKeysets: List<Keyset> = listOf()
+    public val inactiveKeysets: MutableList<Keyset> = mutableListOf()
 
-    public fun addKeyset(keyset: Keyset): Unit {
-        if (this.activeKeyset != null) {
-            this.inactiveKeysets.plus(this.activeKeyset)
-        }
+    private fun addKeyset(keyset: Keyset): Unit {
+        val currentActiveKeyset = this.activeKeyset
+        if (currentActiveKeyset != null) inactiveKeysets.add(currentActiveKeyset)
         this.activeKeyset = keyset
+    }
+
+    public fun getActiveKeyset(): Unit = runBlocking {
+        val scope = CoroutineScope(Dispatchers.IO)
+
+        val keyset = scope.async {
+            val client = HttpClient(OkHttp)
+            val keysetJson = client.get("https://8333.space:3338/keys").bodyAsText()
+            client.close()
+            Keyset.fromJson(keysetJson)
+        }
+
+        addKeyset(keyset.await())
     }
 
     /**
