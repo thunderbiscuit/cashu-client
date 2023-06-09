@@ -51,6 +51,19 @@ public class Keyset(keyset: Map<ULong, PublicKey>) {
         return sortedKeyset[tokenValue] ?: throw Exception("No key found in keyset for token value $tokenValue")
     }
 
+    /**
+     * This override allows us to compare two [Keyset]s for equality (not implementing this means leaving the default
+     * implementation, which is to compare references).
+     */
+    public override fun equals(other: Any?): Boolean {
+        if (other == null || other !is Keyset) return false
+        return sortedKeyset == other.sortedKeyset
+    }
+
+    public override fun hashCode(): Int {
+        return sortedKeyset.hashCode()
+    }
+
     public companion object {
         /**
          * Create a [Keyset] from a JSON string.
