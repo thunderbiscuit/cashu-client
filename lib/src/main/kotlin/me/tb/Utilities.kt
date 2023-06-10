@@ -50,3 +50,7 @@ public fun randomBytes(size: Int): ByteArray {
     random.nextBytes(secret)
     return secret
 }
+
+public fun base64ToBase64UrlSafe(base64: String): String {
+    return base64.replace('+', '-').replace('/', '_').replace("=", "")
+}

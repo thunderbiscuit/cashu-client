@@ -115,4 +115,18 @@ class WalletTest {
             actual = wallet.inactiveKeysets.first()
         )
     }
+
+    @Test
+    fun `Wallet can request specific keyset from mint`() {
+        val jsonString = """{"1":"03142715675faf8da1ecc4d51e0b9e539fa0d52fdd96ed60dbe99adb15d6b05ad9"}"""
+        val smallKeyset = Keyset.fromJson(jsonString)
+        val wallet = Wallet(activeKeyset = smallKeyset, mintUrl = "https://8333.space:3338")
+
+        val specificKeyset = wallet.getSpecificKeyset(KeysetId("I2yN+iRYfkzT"))
+        println(specificKeyset.sortedKeyset)
+        assertEquals(
+            expected = Keyset.fromJson(TEST_KEYSET),
+            actual = specificKeyset
+        )
+    }
 }

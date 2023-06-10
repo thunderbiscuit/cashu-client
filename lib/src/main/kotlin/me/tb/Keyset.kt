@@ -21,7 +21,9 @@ public class Keyset(keyset: Map<ULong, PublicKey>) {
     }
 
     public val sortedKeyset: SortedMap<ULong, PublicKey> = keyset.toSortedMap()
-    public val keysetId: KeysetId = deriveKeysetId()
+    public val keysetId: KeysetId by lazy {
+        deriveKeysetId()
+    }
 
     /**
      * Derive the [KeysetId] for a given [Keyset].

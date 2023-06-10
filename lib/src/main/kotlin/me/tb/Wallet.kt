@@ -12,6 +12,7 @@ import io.ktor.client.statement.*
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.*
 import kotlinx.coroutines.*
+import java.util.*
 
 public class Wallet(
     public var activeKeyset: Keyset? = null,
@@ -25,17 +26,35 @@ public class Wallet(
         this.activeKeyset = keyset
     }
 
-    public fun getActiveKeyset(): Unit = runBlocking {
-        val scope = CoroutineScope(Dispatchers.IO)
-
-        val keyset = scope.async {
+    /**
+     * Query the mint for the active [Keyset] and set it as the active keyset.
+     *
+     * TODO: This method doesn't handle mint errors yet.
+     */
+    public fun getActiveKeyset(): Unit = runBlocking(Dispatchers.IO) {
+        val keyset = async {
             val client = HttpClient(OkHttp)
-            val keysetJson = client.get("https://8333.space:3338/keys").bodyAsText()
+            val keysetJson = client.get("$mintUrl/keys").bodyAsText()
             client.close()
             Keyset.fromJson(keysetJson)
         }
-
         addKeyset(keyset.await())
+    }
+
+    /**
+     * Query the mint for the [Keyset] associated with a given [KeysetId].
+     *
+     * TODO: This method doesn't handle mint errors yet.
+     */
+    public fun getSpecificKeyset(keysetId: KeysetId): Keyset = runBlocking(Dispatchers.IO) {
+        val urlSafeKeysetId = base64ToBase64UrlSafe(keysetId.value)
+        val oldKeyset = async {
+            val client = HttpClient(OkHttp)
+            val keysetJson = client.get("$mintUrl/keys/${urlSafeKeysetId}").bodyAsText()
+            client.close()
+            Keyset.fromJson(keysetJson)
+        }
+        oldKeyset.await()
     }
 
     /**
