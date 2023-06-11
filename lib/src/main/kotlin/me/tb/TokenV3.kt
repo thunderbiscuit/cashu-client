@@ -1,9 +1,9 @@
 package me.tb
 
 import kotlinx.serialization.SerialName
-import java.util.Base64
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.util.Base64
 
 /**
  * A Cashu token that includes proofs and their respective mints. Can include proofs from multiple different mints and keysets.
@@ -11,7 +11,7 @@ import kotlinx.serialization.json.Json
 @Serializable
 public data class TokenV3(
     @SerialName("token") public val tokenEntries: List<TokenEntry> = listOf(),
-    public val memo: String? = null,
+    public val memo: String? = null
 ) {
     public companion object {
         public fun deserialize(serializedTokenV3: String): TokenV3 {
@@ -59,5 +59,5 @@ public data class TokenV3(
 @Serializable
 public data class TokenEntry(
     public val mint: String? = null,
-    public val proofs: List<Proof>,
+    public val proofs: List<Proof>
 )

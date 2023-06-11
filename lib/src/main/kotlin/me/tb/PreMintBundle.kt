@@ -16,7 +16,7 @@ public class PreMintBundle(
         val outputs: List<BlindedMessage> = preMintItems.map { preMintItem ->
             BlindedMessage(
                 amount = preMintItem.amount,
-                blindedSecret = preMintItem.blindedSecret.toString(),
+                blindedSecret = preMintItem.blindedSecret.toString()
             )
         }
 
@@ -32,7 +32,7 @@ public class PreMintBundle(
  * @param blindedSecret The blinded secret B_ that is sent to the mint.
  * @param blindingFactor The blinding factor r, private key of the point R that is used to blind key Y.
  */
-public class PreMintItem private constructor (
+public class PreMintItem private constructor(
     public val amount: ULong,
     private val secret: Secret,
     public val blindedSecret: PublicKey,

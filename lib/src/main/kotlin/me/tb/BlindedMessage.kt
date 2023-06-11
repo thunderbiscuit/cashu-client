@@ -26,5 +26,5 @@ public data class BlindedMessage(
  */
 @Serializable
 public data class MintRequest(
-    val outputs: List<BlindedMessage>,
+    val outputs: List<BlindedMessage>
 )

@@ -4,8 +4,8 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import fr.acinq.bitcoin.PublicKey
 import fr.acinq.bitcoin.crypto.Digest
-import java.util.SortedMap
 import java.util.Base64
+import java.util.SortedMap
 
 /**
  * A keyset is a set of public keys, each associated with a token value. The mint uses the key appropriate to the amount

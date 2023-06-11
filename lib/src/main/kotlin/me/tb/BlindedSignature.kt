@@ -1,7 +1,7 @@
 package me.tb
 
-import kotlinx.serialization.Serializable
 import fr.acinq.bitcoin.PublicKey
+import kotlinx.serialization.Serializable
 
 /**
  * This is the smallest unit of data returned by the mint endpoint. These aggregate into a [MintResponse] object.

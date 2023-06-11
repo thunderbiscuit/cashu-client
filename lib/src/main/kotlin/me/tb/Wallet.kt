@@ -2,25 +2,26 @@ package me.tb
 
 import fr.acinq.bitcoin.PrivateKey
 import fr.acinq.bitcoin.PublicKey
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
 import me.tb.db.DBProof
 import me.tb.db.DBSettings
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.transaction
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.okhttp.*
-import kotlinx.coroutines.*
-import java.util.*
 
 public class Wallet(
     public var activeKeyset: Keyset? = null,
-    private val mintUrl: String,
+    private val mintUrl: String
 ) {
     public val inactiveKeysets: MutableList<Keyset> = mutableListOf()
 
-    private fun addKeyset(keyset: Keyset): Unit {
+    private fun addKeyset(keyset: Keyset) {
         val currentActiveKeyset = this.activeKeyset
         if (currentActiveKeyset != null) inactiveKeysets.add(currentActiveKeyset)
         this.activeKeyset = keyset
@@ -50,7 +51,7 @@ public class Wallet(
         val urlSafeKeysetId = base64ToBase64UrlSafe(keysetId.value)
         val oldKeyset = async {
             val client = HttpClient(OkHttp)
-            val keysetJson = client.get("$mintUrl/keys/${urlSafeKeysetId}").bodyAsText()
+            val keysetJson = client.get("$mintUrl/keys/$urlSafeKeysetId").bodyAsText()
             client.close()
             Keyset.fromJson(keysetJson)
         }
@@ -60,7 +61,7 @@ public class Wallet(
     /**
      * The wallet processes the mint's response by unblinding the signatures and adding the [Proof]s to its database.
      */
-    public fun processMintResponse(preMintBundle: PreMintBundle, mintResponse: MintResponse): Unit {
+    public fun processMintResponse(preMintBundle: PreMintBundle, mintResponse: MintResponse) {
         require(preMintBundle.preMintItems.size == mintResponse.promises.size) {
             "The number of outputs in the mint request and promises in the mint response must be the same."
         }
