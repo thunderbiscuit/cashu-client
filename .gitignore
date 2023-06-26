@@ -3,3 +3,4 @@ build
 .idea
 NOTES.md
 cashu.sqlite3
+.DS_Store
