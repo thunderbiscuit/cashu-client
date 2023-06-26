@@ -1,5 +1,6 @@
-package me.tb
+package me.tb.cashuclient
 
+import me.tb.cashuclient.TokenV3
 import java.lang.IllegalArgumentException
 import kotlin.test.Test
 import kotlin.test.assertEquals

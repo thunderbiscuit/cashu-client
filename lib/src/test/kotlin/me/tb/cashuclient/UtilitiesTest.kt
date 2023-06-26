@@ -1,7 +1,9 @@
-package me.tb
+package me.tb.cashuclient
 
 import fr.acinq.bitcoin.PublicKey
 import fr.acinq.secp256k1.Hex
+import me.tb.cashuclient.hashToCurve
+import me.tb.cashuclient.splitAmount
 import java.lang.IllegalArgumentException
 import kotlin.test.Test
 import kotlin.test.assertEquals

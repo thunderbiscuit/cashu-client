@@ -1,4 +1,4 @@
-package me.tb.mockmint
+package me.tb.cashuclient.mockmint
 
 import fr.acinq.bitcoin.PrivateKey
 import fr.acinq.bitcoin.PublicKey

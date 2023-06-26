@@ -1,4 +1,9 @@
-package me.tb
+/*
+ * Copyright 2023 thunderbiscuit and contributors.
+ * Use of this source code is governed by the Apache 2.0 license that can be found in the ./LICENSE file.
+ */
+ 
+package me.tb.cashuclient
 
 import fr.acinq.bitcoin.PrivateKey
 import fr.acinq.bitcoin.PublicKey
@@ -9,8 +14,8 @@ import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
-import me.tb.db.DBProof
-import me.tb.db.DBSettings
+import me.tb.cashuclient.db.DBProof
+import me.tb.cashuclient.db.DBSettings
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.transaction

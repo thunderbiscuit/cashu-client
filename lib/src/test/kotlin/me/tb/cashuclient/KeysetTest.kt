@@ -1,5 +1,7 @@
-package me.tb
+package me.tb.cashuclient
 
+import me.tb.cashuclient.Keyset
+import me.tb.cashuclient.TEST_KEYSET
 import java.lang.IllegalArgumentException
 import kotlin.test.Test
 import kotlin.test.assertEquals

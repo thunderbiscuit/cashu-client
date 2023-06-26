@@ -1,9 +1,9 @@
-package me.tb
+package me.tb.cashuclient
 
 import fr.acinq.bitcoin.PrivateKey
 import fr.acinq.bitcoin.PublicKey
 import fr.acinq.secp256k1.Hex
-import me.tb.mockmint.MockMint
+import me.tb.cashuclient.mockmint.MockMint
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

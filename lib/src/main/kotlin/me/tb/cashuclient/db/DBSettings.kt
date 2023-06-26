@@ -3,7 +3,7 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the ./LICENSE file.
  */
  
-package me.tb.db
+package me.tb.cashuclient.db
 
 import org.jetbrains.exposed.sql.Database
 

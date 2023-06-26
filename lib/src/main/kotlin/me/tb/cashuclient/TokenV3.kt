@@ -3,7 +3,7 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the ./LICENSE file.
  */
  
-package me.tb
+package me.tb.cashuclient
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -55,9 +55,9 @@ public data class TokenV3(
         }
     }
 
-    // public fun toJson(): String {
-    //     return Json.encodeToString(serializer(), this)
-    // }
+    public fun toJson(): String {
+        return Json.encodeToString(serializer(), this)
+    }
 }
 
 // TODO: Having the mint as an element to each TokenEntry implies a token can be composed of multiple tokens from different mints?
