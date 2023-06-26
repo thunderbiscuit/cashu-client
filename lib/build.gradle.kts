@@ -81,7 +81,7 @@ publishing {
     publications {
         create<MavenPublication>("maven") {
             groupId = "me.tb"
-            artifactId = "kashuclient"
+            artifactId = "cashuclient"
             version = "0.1.0-SNAPSHOT"
 
             from(components["java"])

@@ -1,2 +1,2 @@
-rootProject.name = "kashu-client"
+rootProject.name = "cashu-client"
 include("lib")
