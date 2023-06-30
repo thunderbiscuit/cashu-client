@@ -7,13 +7,20 @@ package me.tb.cashuclient
 
 import fr.acinq.bitcoin.PrivateKey
 import fr.acinq.bitcoin.PublicKey
+import fr.acinq.bitcoin.Satoshi
 import io.ktor.client.HttpClient
+import io.ktor.client.call.*
 import io.ktor.client.engine.okhttp.OkHttp
-import io.ktor.client.request.get
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.plugins.logging.*
+import io.ktor.client.request.*
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
 import me.tb.cashuclient.db.DBProof
 import me.tb.cashuclient.db.DBSettings
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -26,6 +33,9 @@ public class Wallet(
 ) {
     public val inactiveKeysets: MutableList<Keyset> = mutableListOf()
 
+    /**
+     * Rotate the active [Keyset] for the wallet.
+     */
     private fun addKeyset(keyset: Keyset) {
         val currentActiveKeyset = this.activeKeyset
         if (currentActiveKeyset != null) inactiveKeysets.add(currentActiveKeyset)
@@ -61,6 +71,40 @@ public class Wallet(
             Keyset.fromJson(keysetJson)
         }
         oldKeyset.await()
+    }
+
+    /**
+     * Initiate minting request with the mint for a given amount. The mint will return a bolt11 invoice the client must pay
+     * in order to proceed to the next step and request newly minted tokens.
+     *
+     * TODO: This method doesn't handle mint errors yet.
+     * TODO: Make sure we sanitize the logs
+     */
+    public fun requestMint(amount: Satoshi): InvoiceResponse = runBlocking(Dispatchers.IO) {
+        val client = HttpClient(OkHttp) {
+            install(ContentNegotiation) {
+                json(Json {
+                    prettyPrint = true
+                    isLenient = true
+                    ignoreUnknownKeys = true
+                })
+            }
+            install(Logging) {
+                logger = Logger.DEFAULT
+            }
+        }
+
+        val response = async {
+            client.request("$mintUrl/mint") {
+            method = HttpMethod.Get
+            url {
+                parameters.append("amount", amount.sat.toString())
+            }
+        }}.await()
+        client.close()
+
+        val requestMintResponse: InvoiceResponse = response.body()
+        requestMintResponse
     }
 
     /**

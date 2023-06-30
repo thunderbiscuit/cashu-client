@@ -2,6 +2,7 @@ package me.tb.cashuclient
 
 import fr.acinq.bitcoin.PrivateKey
 import fr.acinq.bitcoin.PublicKey
+import fr.acinq.bitcoin.Satoshi
 import fr.acinq.secp256k1.Hex
 import me.tb.cashuclient.mockmint.MockMint
 import kotlin.test.Test
@@ -128,5 +129,11 @@ class WalletTest {
             expected = Keyset.fromJson(TEST_KEYSET),
             actual = specificKeyset
         )
+    }
+
+    @Test
+    fun `Wallet can request new minting`() {
+        val wallet = Wallet(mintUrl = "https://8333.space:3338")
+        wallet.requestMint(Satoshi(10000))
     }
 }

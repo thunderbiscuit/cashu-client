@@ -28,6 +28,7 @@ dependencies {
     // Bitcoin
     implementation("fr.acinq.bitcoin:bitcoin-kmp-jvm:0.12.0")
     implementation("fr.acinq.secp256k1:secp256k1-kmp-jni-jvm-darwin:0.10.0")
+    implementation("fr.acinq.lightning:lightning-kmp-jvm:1.4.4")
 
     // Exposed
     implementation("org.jetbrains.exposed:exposed-core:0.40.1")
@@ -42,9 +43,13 @@ dependencies {
     implementation("io.ktor:ktor-client-core-jvm:2.3.1")
     implementation("io.ktor:ktor-client-okhttp:2.3.1")
     implementation("io.ktor:ktor-client-logging:2.3.1")
+    implementation("io.ktor:ktor-client-content-negotiation:2.3.1")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.1")
 
-    // TODO: Consider adding logging
-    // implementation("ch.qos.logback:logback-classic:1.2.9")
+    // Logging
+    // TODO: The logging needs work. Don't forget about it.
+    implementation("ch.qos.logback:logback-classic:1.4.5")
+
 
     // TODO: Why isn't this needed?
     // testImplementation(kotlin("test"))
