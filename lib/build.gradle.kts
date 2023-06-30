@@ -5,12 +5,16 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent.SKIPPED
 import org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_ERROR
 import org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_OUT
 
+// Library version is defined in gradle.properties
+val libraryVersion: String by project
+
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.8.10"
     kotlin("plugin.serialization") version "1.8.10"
     id("java-library")
     id("maven-publish")
     id("org.jlleitschuh.gradle.ktlint") version "11.4.0"
+    id("org.jetbrains.dokka") version "1.8.10"
 }
 
 repositories {
@@ -82,9 +86,20 @@ publishing {
         create<MavenPublication>("maven") {
             groupId = "me.tb"
             artifactId = "cashuclient"
-            version = "0.1.0-SNAPSHOT"
+            version = libraryVersion
 
             from(components["java"])
+        }
+    }
+}
+
+tasks.withType<org.jetbrains.dokka.gradle.DokkaTask>().configureEach {
+    dokkaSourceSets {
+        named("main") {
+            moduleName.set("cashuclient")
+            moduleVersion.set(libraryVersion)
+            // includes.from("Module.md")
+            // samples.from("src/test/kotlin/me/tb/Samples.kt")
         }
     }
 }
