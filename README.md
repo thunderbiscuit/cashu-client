@@ -5,12 +5,13 @@
 This is a library I'm writing to learn more about the Cashu protocol. Nothing like attempting to code out a spec to learn!
 
 ## Outline
-This library is an implementation of client-side of the [Cashu specification]. It is written in Kotlin and is intended to be used in Kotlin Multiplatform projects. The API is still very much in development, and I am open to suggestions; see the [contribute](#contribute) section. for more info on where I think I could use the most help. See the [issues] for discussion items and design decisions.
+This library is an implementation of the client side of the [Cashu specification] (i.e. it does not include mint software). It is written in Kotlin and is intended to be used in Kotlin Multiplatform projects. The API is still very much in development, and I am open to suggestions; see the [contribute](#contribute) section for more info on where I think I could use the most help. See the [issues] for discussion items and design decisions; issues and PRs are most welcome.
 
 The main goals of this library are:
-- [ ] 1. Cashu protocol compliant for the client side
-    - [ ] NUT-01
-    - [ ] NUT-02
+- [ ] 1. Cashu protocol compliant client side
+    - [x] NUT-00
+    - [x] NUT-01
+    - [x] NUT-02
     - [ ] NUT-03
     - [ ] NUT-04
     - [ ] NUT-05
