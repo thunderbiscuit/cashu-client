@@ -13,7 +13,7 @@ plugins {
     kotlin("plugin.serialization") version "1.8.10"
     id("java-library")
     id("maven-publish")
-    id("org.jlleitschuh.gradle.ktlint") version "11.4.0"
+    // id("org.jlleitschuh.gradle.ktlint") version "11.4.0"
     id("org.jetbrains.dokka") version "1.8.10"
 }
 

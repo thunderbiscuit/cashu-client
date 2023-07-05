@@ -21,6 +21,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
+import me.tb.cashuclient.db.DBBolt11Payment
 import me.tb.cashuclient.db.DBProof
 import me.tb.cashuclient.db.DBSettings
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -42,10 +43,9 @@ public class Wallet(
         this.activeKeyset = keyset
     }
 
+    // TODO: This method doesn't handle mint errors yet.
     /**
-     * Query the mint for the active [Keyset] and set it as the active keyset.
-     *
-     * TODO: This method doesn't handle mint errors yet.
+     * Query the mint for the active [Keyset] and set it as the active keyset.*
      */
     public fun getActiveKeyset(): Unit = runBlocking(Dispatchers.IO) {
         val keyset = async {
@@ -57,10 +57,9 @@ public class Wallet(
         addKeyset(keyset.await())
     }
 
+    // TODO: This method doesn't handle mint errors yet.
     /**
      * Query the mint for the [Keyset] associated with a given [KeysetId].
-     *
-     * TODO: This method doesn't handle mint errors yet.
      */
     public fun getSpecificKeyset(keysetId: KeysetId): Keyset = runBlocking(Dispatchers.IO) {
         val urlSafeKeysetId = base64ToBase64UrlSafe(keysetId.value)
@@ -73,27 +72,32 @@ public class Wallet(
         oldKeyset.await()
     }
 
+    // TODO: This method doesn't handle mint errors yet.
+    // TODO: Make sure we sanitize the logs
+    // TODO: I think this method could return Unit instead of InvoiceResponse and the client simply moves on to the next
+    //       step. The bolt11 invoice is stored in the database, ready to be given out to the user to pay.
+    // TODO: Test entries to the database
     /**
      * Initiate minting request with the mint for a given amount. The mint will return a bolt11 invoice the client must pay
      * in order to proceed to the next step and request newly minted tokens.
-     *
-     * TODO: This method doesn't handle mint errors yet.
-     * TODO: Make sure we sanitize the logs
      */
     public fun requestMint(amount: Satoshi): InvoiceResponse = runBlocking(Dispatchers.IO) {
         val client = HttpClient(OkHttp) {
             install(ContentNegotiation) {
-                json(Json {
-                    prettyPrint = true
-                    isLenient = true
-                    ignoreUnknownKeys = true
-                })
+                json(
+                    Json {
+                        prettyPrint = true
+                        isLenient = true
+                        ignoreUnknownKeys = true
+                    }
+                )
             }
             install(Logging) {
                 logger = Logger.DEFAULT
             }
         }
 
+        // Part 1: call the mint and get a bolt11 invoice
         val response = async {
             client.request("$mintUrl/mint") {
             method = HttpMethod.Get
@@ -104,6 +108,19 @@ public class Wallet(
         client.close()
 
         val requestMintResponse: InvoiceResponse = response.body()
+
+        // Part 2: add information to database
+        DBSettings.db
+        transaction {
+            SchemaUtils.create(DBBolt11Payment)
+
+            DBBolt11Payment.insert {
+                it[pr] = requestMintResponse.pr
+                it[hash] = requestMintResponse.hash
+                it[value] = amount.sat.toULong()
+            }
+        }
+
         requestMintResponse
     }
 

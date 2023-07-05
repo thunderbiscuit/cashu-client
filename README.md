@@ -12,7 +12,7 @@ The main goals of this library are:
     - [x] NUT-00
     - [x] NUT-01
     - [x] NUT-02
-    - [ ] NUT-03
+    - [x] NUT-03
     - [ ] NUT-04
     - [ ] NUT-05
     - [ ] NUT-06

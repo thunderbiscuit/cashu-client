@@ -8,8 +8,8 @@ package me.tb.cashuclient.db
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Table
 
+@OptIn(ExperimentalUnsignedTypes::class)
 public object DBProof : Table() {
-    @OptIn(ExperimentalUnsignedTypes::class)
     public val amount: Column<ULong> = ulong("amount")
     public val secret: Column<String> = varchar("secret", 100)
     public val C: Column<String> = varchar("C", 100)
