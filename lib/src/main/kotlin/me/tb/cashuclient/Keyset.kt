@@ -71,6 +71,10 @@ public class Keyset(keyset: Map<ULong, PublicKey>) {
         return sortedKeyset.hashCode()
     }
 
+    public override fun toString(): String {
+        return sortedKeyset.toString()
+    }
+
     public companion object {
         /**
          * Create a [Keyset] from a JSON string.
