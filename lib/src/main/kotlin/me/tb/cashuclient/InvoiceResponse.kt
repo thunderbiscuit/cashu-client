@@ -13,5 +13,11 @@ public data class InvoiceResponse(
     public val pr: String,
     public val hash: String
 ) {
-    public val paymentRequest: PaymentRequest = PaymentRequest.read(pr)
+    init {
+        println("InvoiceResponse from the mint is: $pr")
+    }
+    // TODO: The ACINQ library cannot parse payment requests coming from
+    //       https://mutinynet-cashu.thesimplekid.space or https://testnut.cashu.space
+    //       so there is not checking that the payment request is valid at this point.
+    // public val paymentRequest: PaymentRequest = PaymentRequest.read(pr)
 }
