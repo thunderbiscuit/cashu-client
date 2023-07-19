@@ -49,6 +49,11 @@ public fun hashToCurve(message: ByteArray): PublicKey {
     return point
 }
 
+/**
+ * Use Java's SecureRandom to generate a random byte array of the given size.
+ *
+ * @param size The size (in bytes) of the ByteArray to generate.
+ */
 public fun randomBytes(size: Int): ByteArray {
     val random = SecureRandom()
     val secret = ByteArray(size)
