@@ -8,6 +8,7 @@ package me.tb.cashuclient
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import me.tb.cashuclient.types.Proof
 import java.util.Base64
 
 /**

@@ -24,6 +24,11 @@ import kotlinx.serialization.json.Json
 import me.tb.cashuclient.db.DBBolt11Payment
 import me.tb.cashuclient.db.DBProof
 import me.tb.cashuclient.db.DBSettings
+import me.tb.cashuclient.db.getAmountByHash
+import me.tb.cashuclient.types.InvoiceResponse
+import me.tb.cashuclient.types.MintingRequest
+import me.tb.cashuclient.types.MintingResponse
+import me.tb.cashuclient.types.Proof
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -81,7 +86,7 @@ public class Wallet(
      * Initiate minting request with the mint for a given amount. The mint will return a bolt11 invoice the client must pay
      * in order to proceed to the next step and request newly minted tokens.
      */
-    public fun requestMint(amount: Satoshi): InvoiceResponse = runBlocking(Dispatchers.IO) {
+    public fun requestFundingInvoice(amount: Satoshi): InvoiceResponse = runBlocking(Dispatchers.IO) {
         val client = HttpClient(OkHttp) {
             install(ContentNegotiation) {
                 json(
@@ -107,27 +112,73 @@ public class Wallet(
         }}.await()
         client.close()
 
-        val requestMintResponse: InvoiceResponse = response.body()
+        val fundingInvoiceResponse: InvoiceResponse = response.body()
 
         // Part 2: add information to database
         DBSettings.db
         transaction {
             SchemaUtils.create(DBBolt11Payment)
 
+            // TODO: Think of what to do if the bolt11 invoice is already in the database
             DBBolt11Payment.insert {
-                it[pr] = requestMintResponse.pr
-                it[hash] = requestMintResponse.hash
+                it[pr] = fundingInvoiceResponse.pr
+                it[hash] = fundingInvoiceResponse.hash
                 it[value] = amount.sat.toULong()
             }
         }
 
-        requestMintResponse
+        fundingInvoiceResponse
+    }
+
+    /**
+     * Request newly minted tokens from the mint. The request requires the client provides the payment ID agreed upon between
+     * the client and the mint (also called the hash, for better or worse, because it's not the preimage hash of the payment at all).
+     *
+     * The mint will return a list of [me.tb.cashuclient.types.BlindedSignature]s, which the client must unblind and add to its database.
+     *
+     * @param hash The payment ID agreed upon between the client and the mint.
+     */
+    public fun requestNewTokens(hash: String): Unit = runBlocking(Dispatchers.IO) {
+        val client = HttpClient(OkHttp) {
+            install(ContentNegotiation) {
+                json(
+                    Json {
+                        prettyPrint = true
+                        isLenient = true
+                        ignoreUnknownKeys = true
+                    }
+                )
+            }
+            install(Logging) {
+                logger = Logger.DEFAULT
+            }
+        }
+
+        val amount = getAmountByHash(hash)
+        val preMintBundle: PreMintBundle = PreMintBundle.create(amount)
+        val mintingRequest: MintingRequest = preMintBundle.buildMintingRequest()
+
+        val response = async {
+            client.post("$mintUrl/mint") {
+                method = HttpMethod.Post
+                url {
+                    parameters.append("hash", hash)
+                }
+                contentType(ContentType.Application.Json)
+                setBody(mintingRequest)
+            }}.await()
+        client.close()
+
+        // println("Mint response: ${response.body<String>()}")
+        val mintResponse: MintingResponse = response.body()
+
+        processMintResponse(preMintBundle, mintResponse)
     }
 
     /**
      * The wallet processes the mint's response by unblinding the signatures and adding the [Proof]s to its database.
      */
-    public fun processMintResponse(preMintBundle: PreMintBundle, mintResponse: MintResponse) {
+    private fun processMintResponse(preMintBundle: PreMintBundle, mintResponse: MintingResponse) {
         require(preMintBundle.preMintItems.size == mintResponse.promises.size) {
             "The number of outputs in the mint request and promises in the mint response must be the same."
         }
@@ -136,7 +187,7 @@ public class Wallet(
         (preMintBundle.preMintItems zip mintResponse.promises).forEach { (preMintItem, promise) ->
             // Unblinding is done like so: C = C_ - rK
             val r: PrivateKey = preMintItem.blindingFactor
-            val K: PublicKey = scopedActiveKeyset.getKey(preMintItem.amount.toULong())
+            val K: PublicKey = scopedActiveKeyset.getKey(preMintItem.amount)
             val rK: PublicKey = K.times(r)
             val unblindedKey: PublicKey = PublicKey.fromHex(promise.blindedKey).minus(rK)
 
@@ -147,6 +198,8 @@ public class Wallet(
                 id = scopedActiveKeyset.keysetId.value,
                 script = null
             )
+
+            println("Adding proof to database: $proof")
 
             DBSettings.db
             transaction {

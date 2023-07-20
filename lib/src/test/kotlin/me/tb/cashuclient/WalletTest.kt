@@ -83,6 +83,18 @@ class WalletTest {
     // }
 
     @Test
+    fun `Wallet can request and receive new tokens`() {
+        // val wallet = Wallet(mintUrl = "https://mutinynet-cashu.thesimplekid.space")
+        val wallet = Wallet(mintUrl = "https://testnut.cashu.space")
+        wallet.getActiveKeyset()
+        val paymentRequest = wallet.requestFundingInvoice(Satoshi(10000))
+        println("The payment request in this test is $paymentRequest")
+
+        // Note that this endpoint does not require actual payment of the lightning invoice.
+        wallet.requestNewTokens(paymentRequest.hash)
+    }
+
+    @Test
     fun `Wallet successfully updates active keyset from mint after requesting it`() {
         val jsonString = """{"1":"03142715675faf8da1ecc4d51e0b9e539fa0d52fdd96ed60dbe99adb15d6b05ad9"}"""
         val smallKeyset = Keyset.fromJson(jsonString)
