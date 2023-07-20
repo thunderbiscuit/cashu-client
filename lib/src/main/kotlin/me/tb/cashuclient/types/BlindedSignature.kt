@@ -3,9 +3,10 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the ./LICENSE file.
  */
  
-package me.tb.cashuclient
+package me.tb.cashuclient.types
 
 import fr.acinq.bitcoin.PublicKey
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -17,9 +18,9 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 public data class BlindedSignature(
+    val id: String,
     val amount: ULong,
-    val blindedKey: String,
-    val id: Long
+    @SerialName("C_") val blindedKey: String,
 ) {
     init {
         require(PublicKey.fromHex(blindedKey).isValid()) { "Invalid blinded key: $blindedKey" }
