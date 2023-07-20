@@ -18,7 +18,7 @@ import java.security.SecureRandom
  *
  * @param secret The secret to use. If null or blank, a random secret will be generated.
  */
-public class Secret(secret: String?) {
+public class Secret(secret: String? = null) {
     public val value: ByteArray = generateSecret(secret)
 
     // TODO: Should maybe look at building a second constructor that takes the secret
