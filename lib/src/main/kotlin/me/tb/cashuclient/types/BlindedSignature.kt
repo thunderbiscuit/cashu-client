@@ -25,11 +25,3 @@ public data class BlindedSignature(
         require(PublicKey.fromHex(blindedKey).isValid()) { "Invalid blinded key: $blindedKey" }
     }
 }
-
-/**
- * This is the object returned by the mint endpoint and consists of a list of blinded signatures.
- */
-@Serializable
-public data class MintResponse(
-    val promises: List<BlindedSignature>
-)
