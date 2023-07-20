@@ -1,6 +1,6 @@
 # Readme
 ⚠️ Do not use in production ⚠️  
-<br/>
+<br>
 
 This is a library I'm writing to learn more about the Cashu protocol. Nothing like attempting to code out a spec to learn!
 
@@ -13,11 +13,12 @@ The main goals of this library are:
     - [x] NUT-01
     - [x] NUT-02
     - [x] NUT-03
-    - [ ] NUT-04
+    - [x] NUT-04
     - [ ] NUT-05
     - [ ] NUT-06
     - [ ] NUT-07
     - [ ] NUT-08
+    - [ ] NUT-09
 - [ ] 2. Well tested
 - [ ] 3. Well documented
 - [ ] 4. Usable in KMP projects (JVM and iOS platforms)
