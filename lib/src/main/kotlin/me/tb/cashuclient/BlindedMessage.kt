@@ -5,6 +5,7 @@
  
 package me.tb.cashuclient
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -16,7 +17,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 public data class BlindedMessage(
     val amount: ULong,
-    val blindedSecret: String
+    @SerialName("B_") val blindedSecret: String
 )
 
 /**
