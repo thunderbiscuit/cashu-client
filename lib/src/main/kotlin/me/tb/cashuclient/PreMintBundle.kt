@@ -7,17 +7,18 @@ package me.tb.cashuclient
 
 import fr.acinq.bitcoin.PrivateKey
 import fr.acinq.bitcoin.PublicKey
+import me.tb.cashuclient.types.BlindedMessage
+import me.tb.cashuclient.types.MintingRequest
 
+// TODO: Open issue in spec about exact name for the B_ key.
 /**
  * The data bundle Alice must create prior to communicating with the mint. Once the mint sends a response,
- * this data is then combined with the [MintResponse] to create valid tokens (promises).
- *
- * TODO: Open issue in spec about exact name for the B_ key.
+ * this data is then combined with the [MintingResponse] to create valid tokens (promises).
  */
-public class PreMintBundle(
+public class PreMintBundle private constructor(
     public val preMintItems: List<PreMintItem>
 ) {
-    public fun buildMintRequest(): MintRequest {
+    public fun buildMintingRequest(): MintingRequest {
         val outputs: List<BlindedMessage> = preMintItems.map { preMintItem ->
             BlindedMessage(
                 amount = preMintItem.amount,
@@ -25,12 +26,29 @@ public class PreMintBundle(
             )
         }
 
-        return MintRequest(outputs = outputs)
+        return MintingRequest(outputs = outputs)
+    }
+
+    public companion object {
+        public fun create(value: ULong): PreMintBundle {
+            val tokenAmounts = splitAmount(value)
+            val preMintItems: List<PreMintItem> = tokenAmounts.map { tokenAmount ->
+                PreMintItem.create(
+                    amount = tokenAmount,
+                    secret = Secret(),
+                    blindingFactorBytes = null
+                )
+            }
+
+            return PreMintBundle(preMintItems)
+        }
     }
 }
 
+// TODO: I don't think this create static method requires the secret and blindingFactorBytes parameters. We can build
+//       them internally.
 /**
- * The data structures that get combined into a [PreMintBundle], required to build a [MintRequest].
+ * The data structures that get combined into a [PreMintBundle], required to build a [MintingRequest].
  *
  * @param amount The amount of the token.
  * @param secret The secret x that is used in hashToCurve(x) to create Y.
