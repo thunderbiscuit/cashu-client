@@ -1,11 +1,6 @@
 package me.tb.cashuclient
 
-import fr.acinq.bitcoin.PrivateKey
-import fr.acinq.bitcoin.PublicKey
 import fr.acinq.bitcoin.Satoshi
-import fr.acinq.lightning.payment.PaymentRequest
-import fr.acinq.secp256k1.Hex
-import me.tb.cashuclient.mockmint.MockMint
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

@@ -1,8 +1,6 @@
 package me.tb.cashuclient
 
 import fr.acinq.secp256k1.Hex
-import me.tb.cashuclient.PreMintItem
-import me.tb.cashuclient.Secret
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
