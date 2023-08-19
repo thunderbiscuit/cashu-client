@@ -8,6 +8,7 @@ package me.tb.cashuclient
 import fr.acinq.bitcoin.PrivateKey
 import fr.acinq.bitcoin.PublicKey
 import fr.acinq.bitcoin.Satoshi
+import fr.acinq.lightning.payment.PaymentRequest
 import io.ktor.client.HttpClient
 import io.ktor.client.call.*
 import io.ktor.client.engine.okhttp.OkHttp
@@ -25,6 +26,8 @@ import me.tb.cashuclient.db.DBBolt11Payment
 import me.tb.cashuclient.db.DBProof
 import me.tb.cashuclient.db.DBSettings
 import me.tb.cashuclient.db.getAmountByHash
+import me.tb.cashuclient.types.CheckFeesRequest
+import me.tb.cashuclient.types.CheckFeesResponse
 import me.tb.cashuclient.types.InvoiceResponse
 import me.tb.cashuclient.types.MintingRequest
 import me.tb.cashuclient.types.MintingResponse
@@ -214,5 +217,38 @@ public class Wallet(
                 }
             }
         }
+    }
+
+    public fun checkFees(paymentRequest: PaymentRequest): CheckFeesResponse = runBlocking(Dispatchers.IO) {
+        val checkFeesRequest: CheckFeesRequest = CheckFeesRequest(paymentRequest)
+
+        val client = HttpClient(OkHttp) {
+            install(ContentNegotiation) {
+                json(
+                    Json {
+                        prettyPrint = true
+                        isLenient = true
+                        ignoreUnknownKeys = true
+                    }
+                )
+            }
+            install(Logging) {
+                logger = Logger.DEFAULT
+            }
+        }
+
+        val response = async {
+            client.post("$mintUrl/mint") {
+                method = HttpMethod.Post
+                contentType(ContentType.Application.Json)
+                setBody(checkFeesRequest)
+            }}.await()
+        client.close()
+
+        val responseString: String = response.body<String>()
+        println("Response from mint: $responseString")
+        val maximumFees: CheckFeesResponse = response.body<CheckFeesResponse>()
+        println("Maximum fees: $maximumFees")
+        maximumFees
     }
 }
