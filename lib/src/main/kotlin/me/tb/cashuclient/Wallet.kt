@@ -50,6 +50,26 @@ public class Wallet(
     public val inactiveKeysets: MutableList<Keyset> = mutableListOf()
 
     /**
+     * Create a client to communicate with the mint.
+     */
+    private fun createClient(): HttpClient {
+        return HttpClient(OkHttp) {
+            install(ContentNegotiation) {
+                json(
+                    Json {
+                        prettyPrint = true
+                        isLenient = true
+                        ignoreUnknownKeys = true
+                    }
+                )
+            }
+            install(Logging) {
+                logger = Logger.DEFAULT
+            }
+        }
+    }
+
+    /**
      * Rotate the active [Keyset] for the wallet.
      */
     private fun addKeyset(keyset: Keyset) {
@@ -87,6 +107,10 @@ public class Wallet(
         oldKeyset.await()
     }
 
+    // ---------------------------------------------------------------------------------------------
+    // MINT
+    // ---------------------------------------------------------------------------------------------
+    
     // TODO: This method doesn't handle mint errors yet.
     // TODO: Make sure we sanitize the logs
     // TODO: I think this method could return Unit instead of InvoiceResponse and the client simply moves on to the next
@@ -97,20 +121,7 @@ public class Wallet(
      * in order to proceed to the next step and request newly minted tokens.
      */
     public fun requestFundingInvoice(amount: Satoshi): InvoiceResponse = runBlocking(Dispatchers.IO) {
-        val client = HttpClient(OkHttp) {
-            install(ContentNegotiation) {
-                json(
-                    Json {
-                        prettyPrint = true
-                        isLenient = true
-                        ignoreUnknownKeys = true
-                    }
-                )
-            }
-            install(Logging) {
-                logger = Logger.DEFAULT
-            }
-        }
+        val client = createClient()
 
         // Part 1: call the mint and get a bolt11 invoice
         val response = async {
@@ -149,20 +160,7 @@ public class Wallet(
      * @param hash The payment ID agreed upon between the client and the mint.
      */
     public fun requestNewTokens(hash: String): Unit = runBlocking(Dispatchers.IO) {
-        val client = HttpClient(OkHttp) {
-            install(ContentNegotiation) {
-                json(
-                    Json {
-                        prettyPrint = true
-                        isLenient = true
-                        ignoreUnknownKeys = true
-                    }
-                )
-            }
-            install(Logging) {
-                logger = Logger.DEFAULT
-            }
-        }
+        val client = createClient()
 
         val amount = getAmountByHash(hash)
         val preMintBundle: PreMintBundle = PreMintBundle.create(amount)
@@ -229,20 +227,7 @@ public class Wallet(
     public fun checkFees(paymentRequest: PaymentRequest): CheckFeesResponse = runBlocking(Dispatchers.IO) {
         val checkFeesRequest: CheckFeesRequest = CheckFeesRequest(paymentRequest)
 
-        val client = HttpClient(OkHttp) {
-            install(ContentNegotiation) {
-                json(
-                    Json {
-                        prettyPrint = true
-                        isLenient = true
-                        ignoreUnknownKeys = true
-                    }
-                )
-            }
-            install(Logging) {
-                logger = Logger.DEFAULT
-            }
-        }
+        val client = createClient()
 
         val response = async {
             client.post("$mintUrl/mint") {
