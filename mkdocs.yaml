@@ -41,4 +41,6 @@ nav:
   - Readme: "index.md"
   - Documentation: 
     - Overview: "overview.md"
+    - Install: "install.md"
+    - Cashu: "cashu.md"
     - Architecture: "architecture.md"

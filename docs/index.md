@@ -1,5 +1,6 @@
 # cashu-client
-A Kotlin Multiplatform client library to interact with the [Cashu protocol](https://github.com/cashubtc/nuts).
+A Kotlin Multiplatform client library to interact with the [Cashu protocol](https://github.com/cashubtc/nuts).  
+<br>
 
 The main goals of this library are:  
 
@@ -16,4 +17,5 @@ The main goals of this library are:
     - [ ] NUT-09
 - [ ] Well tested
 - [ ] Well documented
-- [ ] Usable in KMP projects (JVM and iOS platforms)
+- [ ] Usable in KMP projects (JVM and iOS platforms)  
+<br>
