@@ -3,12 +3,15 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the ./LICENSE file.
  */
  
-package me.tb.cashuclient
+package me.tb.cashuclient.mint
 
 import fr.acinq.bitcoin.PrivateKey
 import fr.acinq.bitcoin.PublicKey
+import me.tb.cashuclient.Secret
+import me.tb.cashuclient.hashToCurve
+import me.tb.cashuclient.randomBytes
+import me.tb.cashuclient.splitAmount
 import me.tb.cashuclient.types.BlindedMessage
-import me.tb.cashuclient.types.MintingRequest
 
 // TODO: Open issue in spec about exact name for the B_ key.
 /**
