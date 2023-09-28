@@ -12,6 +12,7 @@ import kotlin.math.pow
 
 /**
  * Given a total amount, returns the shortest list of token values to create this total, e.g. 13 is [1, 4, 8].
+ * Note: this function is not related with the split operation that happens in the wallet.
  */
 public fun splitAmount(value: ULong): List<ULong> {
     require(value != 0uL) { "Zero amounts do not make sense in this context." }
@@ -63,4 +64,54 @@ public fun randomBytes(size: Int): ByteArray {
 
 public fun base64ToBase64UrlSafe(base64: String): String {
     return base64.replace('+', '-').replace('/', '_').replace("=", "")
+}
+
+/*
+ * Given a list of available token amounts and a target amount, returns a [SplitRequired] that lets you know if you'll
+ * need a split or not. If you don't need a split, the final list of token amounts is returned. If you do need a split,
+ * a list of token amounts that almost add up to the target amount is returned, along with the list of denominations
+ * you're missing to reach the target amount.
+ *
+ * TODO: This function is where a lot of the gains could be made in terms of performance and resource utilization.
+ *
+ * @param amountsAvailable The list of token amounts available to the wallet.
+ * @param targetAmount The target amount to reach.
+ */
+public fun isSplitRequired(amountsAvailable: List<ULong>, targetAmount: ULong): SplitRequired {
+    var remainingAmount: ULong = targetAmount
+    val finalList: MutableList<ULong> = mutableListOf()
+
+    for (availableAmount in amountsAvailable) {
+        if (remainingAmount == 0.toULong()) {
+            return SplitRequired.No(finalList)
+        }
+
+        if (availableAmount <= remainingAmount) {
+            finalList.add(availableAmount)
+            remainingAmount -= availableAmount
+        } else if (availableAmount > remainingAmount) {
+            // Small optimization in case we get lucky: if the remaining amount is in the list of available amounts,
+            // we can just add it and return the final list.
+            if (remainingAmount in amountsAvailable) {
+                finalList.add(remainingAmount)
+                remainingAmount -= remainingAmount
+            } else {
+                val requiredDenominations = splitAmount(remainingAmount)
+                return SplitRequired.Yes(finalList, requiredDenominations)
+            }
+        }
+    }
+
+    throw Exception("Something went wrong in isSplitRequired.")
+}
+
+public sealed class SplitRequired {
+    public data class No(
+        val finalList: List<ULong>
+    ): SplitRequired()
+
+    public data class Yes(
+        val almostFinishedList: List<ULong>,
+        val requiredTokens: List<ULong>,
+    ): SplitRequired()
 }
