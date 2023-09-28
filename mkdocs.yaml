@@ -44,3 +44,6 @@ nav:
     - Install: "install.md"
     - Cashu: "cashu.md"
     - Architecture: "architecture.md"
+    - Mint: "mint.md"
+    - Split: "split.md"
+    - Melt: "melt.md"
