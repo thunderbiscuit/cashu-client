@@ -60,7 +60,7 @@ public class PreMintBundle private constructor(
  */
 public class PreMintItem private constructor(
     public val amount: ULong,
-    private val secret: Secret,
+    public val secret: Secret,
     public val blindedSecret: PublicKey,
     public val blindingFactor: PrivateKey
 ) {
