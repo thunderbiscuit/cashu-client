@@ -56,7 +56,9 @@ public class Wallet(
     public val inactiveKeysets: MutableList<Keyset> = mutableListOf()
 
     /**
-     * Create a client to communicate with the mint.
+     * A factory function to create a client for communication with the mint. This pattern allows
+     * us to close the client after each request as there is no need to keep a client open for the
+     * lifetime of the wallet given that calls are expected to be infrequent.
      */
     private fun createClient(): HttpClient {
         return HttpClient(OkHttp) {
@@ -69,6 +71,7 @@ public class Wallet(
                     }
                 )
             }
+            // TODO: Is this the logging level we want? Better configuration would probably be nice.
             install(Logging) {
                 logger = Logger.DEFAULT
             }
@@ -116,7 +119,41 @@ public class Wallet(
     // ---------------------------------------------------------------------------------------------
     // MINT
     // ---------------------------------------------------------------------------------------------
-    
+
+    /**
+     * Request newly minted tokens from the mint. The mint returns a list of [me.tb.cashuclient.types.BlindedSignature]s,
+     * which the client must unblind and add to its database.
+     *
+     * @param amount The amount of token we want to mint.
+     */
+    public fun mint(amount: Satoshi): Unit = runBlocking(Dispatchers.IO) {
+        val client = createClient()
+
+        // Ask the mint for a bolt11 invoice
+        val invoiceResponse: InvoiceResponse = requestFundingInvoice(amount, client)
+
+        // Use it to build a mint request
+        val preMintBundle: PreMintBundle = PreMintBundle.create(amount.toULong())
+        val mintingRequest: MintingRequest = preMintBundle.buildMintingRequest()
+
+        val response = async {
+            client.post("$mintUrl/mint") {
+                method = HttpMethod.Post
+                url {
+                    parameters.append("hash", invoiceResponse.hash)
+                }
+                contentType(ContentType.Application.Json)
+                setBody(mintingRequest)
+            }
+        }.await()
+        client.close()
+
+        // println("Mint response: ${response.body<String>()}")
+        val mintResponse: MintingResponse = response.body()
+
+        processMintResponse(preMintBundle, mintResponse)
+    }
+
     // TODO: This method doesn't handle mint errors yet.
     // TODO: Make sure we sanitize the logs
     // TODO: I think this method could return Unit instead of InvoiceResponse and the client simply moves on to the next
@@ -126,17 +163,14 @@ public class Wallet(
      * Initiate minting request with the mint for a given amount. The mint will return a bolt11 invoice the client must pay
      * in order to proceed to the next step and request newly minted tokens.
      */
-    public fun requestFundingInvoice(amount: Satoshi): InvoiceResponse = runBlocking(Dispatchers.IO) {
-        val client = createClient()
-
+    private fun requestFundingInvoice(amount: Satoshi, client: HttpClient): InvoiceResponse = runBlocking(Dispatchers.IO) {
         // Part 1: call the mint and get a bolt11 invoice
         val response = async {
             client.request("$mintUrl/mint") {
-            method = HttpMethod.Get
-            url {
-                parameters.append("amount", amount.sat.toString())
+                method = HttpMethod.Get
+                url { parameters.append("amount", amount.sat.toString()) }
             }
-        }}.await()
+        }.await()
         client.close()
 
         val fundingInvoiceResponse: InvoiceResponse = response.body()
@@ -155,38 +189,6 @@ public class Wallet(
         }
 
         fundingInvoiceResponse
-    }
-
-    /**
-     * Request newly minted tokens from the mint. The request requires the client provides the payment ID agreed upon between
-     * the client and the mint (also called the hash, for better or worse, because it's not the preimage hash of the payment at all).
-     *
-     * The mint will return a list of [me.tb.cashuclient.types.BlindedSignature]s, which the client must unblind and add to its database.
-     *
-     * @param hash The payment ID agreed upon between the client and the mint.
-     */
-    public fun requestNewTokens(hash: String): Unit = runBlocking(Dispatchers.IO) {
-        val client = createClient()
-
-        val amount = getAmountByHash(hash)
-        val preMintBundle: PreMintBundle = PreMintBundle.create(amount)
-        val mintingRequest: MintingRequest = preMintBundle.buildMintingRequest()
-
-        val response = async {
-            client.post("$mintUrl/mint") {
-                method = HttpMethod.Post
-                url {
-                    parameters.append("hash", hash)
-                }
-                contentType(ContentType.Application.Json)
-                setBody(mintingRequest)
-            }}.await()
-        client.close()
-
-        // println("Mint response: ${response.body<String>()}")
-        val mintResponse: MintingResponse = response.body()
-
-        processMintResponse(preMintBundle, mintResponse)
     }
 
     /**
