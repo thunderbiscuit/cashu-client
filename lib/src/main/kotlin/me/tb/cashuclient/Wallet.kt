@@ -198,7 +198,8 @@ public class Wallet(
     /**
      * The wallet processes the mint's response by unblinding the signatures and adding the [Proof]s to its database.
      */
-    private fun processMintResponse(preMintBundle: PreMintBundle, mintResponse: MintingResponse) {
+    @OptIn(ExperimentalEncodingApi::class)
+    private fun processMintResponse(preMintBundle: PreMintBundle, mintResponse: MintResponse): Unit {
         require(preMintBundle.preMintItems.size == mintResponse.promises.size) {
             "The number of outputs in the mint request and promises in the mint response must be the same."
         }
@@ -211,9 +212,11 @@ public class Wallet(
             val rK: PublicKey = K.times(r)
             val unblindedKey: PublicKey = PublicKey.fromHex(promise.blindedKey).minus(rK)
 
+            // Note: The secret is initially a ByteArray and is converted to a Base64 string for storage in the database,
+            //       and the mints currently use the utf-8 bytes out of this string instead of the actual ByteArray.
             val proof: Proof = Proof(
                 amount = promise.amount,
-                secret = r.toHex(),
+                secret = Base64.encode(preMintItem.secret.value),
                 C = unblindedKey.toHex(),
                 id = scopedActiveKeyset.keysetId.value,
                 script = null
