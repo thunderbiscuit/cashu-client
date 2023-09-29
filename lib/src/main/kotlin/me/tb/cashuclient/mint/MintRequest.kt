@@ -13,12 +13,12 @@ import me.tb.cashuclient.types.BlindedMessage
  *
  * NOTE: These are called PostMintRequest in the specification (NUT-04). The reason why I changed the name is that
  *       PostMintRequest describes the object in terms of _when_ it is sent (after the "mint request" described in
- *       NUT-03 has been sent) rather than what it is. `MintingRequest` is, IMO, a better name, and conveys its purpose,
- *       particularly when coupled with its sibling object, `MintingResponse`.
+ *       NUT-03 has been sent) rather than what it is. `MintRequest` is, IMO, a better name, and conveys its purpose,
+ *       particularly when coupled with its sibling object, `MintResponse`.
  *
  * @param outputs List of blinded messages to be signed.
  */
 @Serializable
-public data class MintingRequest(
+public data class MintRequest(
     val outputs: List<BlindedMessage>
 )

@@ -32,7 +32,6 @@ import kotlinx.serialization.json.Json
 import me.tb.cashuclient.db.DBBolt11Payment
 import me.tb.cashuclient.db.DBProof
 import me.tb.cashuclient.db.DBSettings
-import me.tb.cashuclient.db.getAmountByHash
 import me.tb.cashuclient.mint.PreMintBundle
 import me.tb.cashuclient.split.PreSplitBundle
 import me.tb.cashuclient.melt.CheckFeesRequest
@@ -41,13 +40,18 @@ import me.tb.cashuclient.mint.InvoiceResponse
 import me.tb.cashuclient.melt.MeltRequest
 import me.tb.cashuclient.melt.MeltResponse
 import me.tb.cashuclient.melt.PreMeltBundle
-import me.tb.cashuclient.mint.MintingRequest
-import me.tb.cashuclient.mint.MintingResponse
+import me.tb.cashuclient.mint.MintRequest
+import me.tb.cashuclient.mint.MintResponse
 import me.tb.cashuclient.types.Proof
 import me.tb.cashuclient.split.SplitResponse
 import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 public class Wallet(
     public var activeKeyset: Keyset? = null,
@@ -134,7 +138,7 @@ public class Wallet(
 
         // Use it to build a mint request
         val preMintBundle: PreMintBundle = PreMintBundle.create(amount.toULong())
-        val mintingRequest: MintingRequest = preMintBundle.buildMintingRequest()
+        val mintingRequest: MintRequest = preMintBundle.buildMintRequest()
 
         val response = async {
             client.post("$mintUrl/mint") {
@@ -149,7 +153,7 @@ public class Wallet(
         client.close()
 
         // println("Mint response: ${response.body<String>()}")
-        val mintResponse: MintingResponse = response.body()
+        val mintResponse: MintResponse = response.body()
 
         processMintResponse(preMintBundle, mintResponse)
     }

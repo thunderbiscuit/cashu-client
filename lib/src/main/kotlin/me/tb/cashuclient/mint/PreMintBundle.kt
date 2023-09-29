@@ -13,15 +13,14 @@ import me.tb.cashuclient.randomBytes
 import me.tb.cashuclient.splitAmount
 import me.tb.cashuclient.types.BlindedMessage
 
-// TODO: Open issue in spec about exact name for the B_ key.
 /**
  * The data bundle Alice must create prior to communicating with the mint. Once the mint sends a response,
- * this data is then combined with the [MintingResponse] to create valid tokens (promises).
+ * this data is then combined with the [MintResponse] to create valid tokens (promises).
  */
 public class PreMintBundle private constructor(
     public val preMintItems: List<PreMintItem>
 ) {
-    public fun buildMintingRequest(): MintingRequest {
+    public fun buildMintRequest(): MintRequest {
         val outputs: List<BlindedMessage> = preMintItems.map { preMintItem ->
             BlindedMessage(
                 amount = preMintItem.amount,
@@ -29,7 +28,7 @@ public class PreMintBundle private constructor(
             )
         }
 
-        return MintingRequest(outputs = outputs)
+        return MintRequest(outputs = outputs)
     }
 
     public companion object {
@@ -51,7 +50,7 @@ public class PreMintBundle private constructor(
 // TODO: I don't think this create static method requires the secret and blindingFactorBytes parameters. We can build
 //       them internally.
 /**
- * The data structures that get combined into a [PreMintBundle], required to build a [MintingRequest].
+ * The data structures that get combined into a [PreMintBundle], required to build a [MintRequest].
  *
  * @param amount The amount of the token.
  * @param secret The secret x that is used in hashToCurve(x) to create Y.

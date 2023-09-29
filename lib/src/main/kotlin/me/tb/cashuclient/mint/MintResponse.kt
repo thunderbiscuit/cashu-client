@@ -14,6 +14,6 @@ import me.tb.cashuclient.types.BlindedSignature
  * @param promises List of blinded signatures.
  */
 @Serializable
-public data class MintingResponse(
+public data class MintResponse(
     val promises: List<BlindedSignature>
 )

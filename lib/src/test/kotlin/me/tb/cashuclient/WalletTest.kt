@@ -33,7 +33,7 @@ class WalletTest {
     //         blindedKey = blindedSignature.toHex(),
     //         id = 1
     //     )
-    //     val mintResponse: MintingResponse = MintingResponse(listOf(blindedSignatureObject))
+    //     val mintResponse: MintResponse = MintResponse(listOf(blindedSignatureObject))
     //
     //     // Step 3: create wallet and process mint response
     //     val wallet = Wallet(
@@ -67,7 +67,7 @@ class WalletTest {
     //         blindedKey = blindedSignature,
     //         id = 1
     //     )
-    //     val mintResponse: MintingResponse = MintingResponse(listOf(blindedSignatureObject))
+    //     val mintResponse: MintResponse = MintResponse(listOf(blindedSignatureObject))
     //
     //     // Step 3: create wallet and process mint response
     //     val wallet = Wallet(
