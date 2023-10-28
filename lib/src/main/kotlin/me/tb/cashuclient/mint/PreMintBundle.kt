@@ -16,6 +16,8 @@ import me.tb.cashuclient.types.BlindedMessage
 /**
  * The data bundle Alice must create prior to communicating with the mint. Once the mint sends a response,
  * this data is then combined with the [MintResponse] to create valid tokens (promises).
+ *
+ * @property preMintItems The list of [PreMintItem]s that will be sent to the mint.
  */
 public class PreMintBundle private constructor(
     public val preMintItems: List<PreMintItem>
@@ -50,7 +52,12 @@ public class PreMintBundle private constructor(
 // TODO: I don't think this create static method requires the secret and blindingFactorBytes parameters. We can build
 //       them internally.
 /**
- * The data structures that get combined into a [PreMintBundle], required to build a [MintRequest].
+ * The data structures that get combined into a [PreMintBundle], required to build a [MintRequest], and are combined
+ * with the mint's response to create [Proof]s.
+ *
+ * The amount and blindedSecret are required to build the [BlindedMessage]s that are sent to the mint and which the mint
+ * sign. Upon return, the signed [BlindedSignature]s are unblinded using the blindingFactor and, combined with the
+ * secret, stored as [Proof]s in the database.
  *
  * @param amount The amount of the token.
  * @param secret The secret x that is used in hashToCurve(x) to create Y.
