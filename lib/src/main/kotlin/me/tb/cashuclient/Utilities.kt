@@ -74,14 +74,14 @@ public fun base64ToBase64UrlSafe(base64: String): String {
  *
  * TODO: This function is where a lot of the gains could be made in terms of performance and resource utilization.
  *
- * @param amountsAvailable The list of token amounts available to the wallet.
+ * @param availableDenominations The list of denominations available to the wallet.
  * @param targetAmount The target amount to reach.
  */
-public fun isSplitRequired(amountsAvailable: List<ULong>, targetAmount: ULong): SplitRequired {
+public fun isSplitRequired(availableDenominations: List<ULong>, targetAmount: ULong): SplitRequired {
     var remainingAmount: ULong = targetAmount
     val finalList: MutableList<ULong> = mutableListOf()
 
-    for (availableAmount in amountsAvailable) {
+    for (availableAmount in availableDenominations) {
         if (remainingAmount == 0.toULong()) {
             return SplitRequired.No(finalList)
         }
@@ -92,7 +92,7 @@ public fun isSplitRequired(amountsAvailable: List<ULong>, targetAmount: ULong): 
         } else if (availableAmount > remainingAmount) {
             // Small optimization in case we get lucky: if the remaining amount is in the list of available amounts,
             // we can just add it and return the final list.
-            if (remainingAmount in amountsAvailable) {
+            if (remainingAmount in availableDenominations) {
                 finalList.add(remainingAmount)
                 remainingAmount -= remainingAmount
             } else {
@@ -102,7 +102,7 @@ public fun isSplitRequired(amountsAvailable: List<ULong>, targetAmount: ULong): 
         }
     }
 
-    throw Exception("Something went wrong in isSplitRequired.")
+    throw Exception("Something went wrong in isSplitRequired")
 }
 
 public sealed class SplitRequired {
