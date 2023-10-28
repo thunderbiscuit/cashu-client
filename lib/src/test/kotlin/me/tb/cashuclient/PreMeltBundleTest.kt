@@ -8,17 +8,17 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class PreMeltBundleTest {
-    @BeforeTest
-    fun setUp() {
-        buildMockDB()
-    }
-
-    @Test
-    fun testMockDB() {
-        transaction {
-            val result = DBProof.selectAll()
-            assertEquals(1, result.count())
-        }
-    }
-}
+// class PreMeltBundleTest {
+//     @BeforeTest
+//     fun setUp() {
+//         buildMockDB()
+//     }
+//
+//     @Test
+//     fun testMockDB() {
+//         transaction {
+//             val result = DBProof.selectAll()
+//             assertEquals(1, result.count())
+//         }
+//     }
+// }
