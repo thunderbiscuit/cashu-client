@@ -339,15 +339,16 @@ public class Wallet(
         println("Melt response: $meltResponse")
 
         if (meltResponse.paid) {
-            processMeltResponse(preMeltBundle, meltResponse)
+            processMeltResponse(preMeltBundle)
         } else {
             throw Exception("The payment request was not paid.")
         }
     }
 
-    private fun processMeltResponse(preMeltBundle: PreMeltBundle, meltResponse: MeltResponse) {
+    private fun processMeltResponse(preMeltBundle: PreMeltBundle) {
         // TODO: Should we simply mark them as archived instead of deleting them? We could have a separate method for
         //       collecting the proofs that are archived and deleting them upon user request.
+        // TODO: Should we add the preimage to the database?
         DBSettings.db
         transaction {
             SchemaUtils.create(DBProof)
