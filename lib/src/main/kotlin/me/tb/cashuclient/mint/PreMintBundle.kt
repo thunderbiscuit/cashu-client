@@ -37,11 +37,7 @@ public class PreMintBundle private constructor(
         public fun create(value: ULong): PreMintBundle {
             val tokenAmounts = decomposeAmount(value)
             val preMintItems: List<PreMintItem> = tokenAmounts.map { tokenAmount ->
-                PreMintItem.create(
-                    amount = tokenAmount,
-                    secret = Secret(),
-                    blindingFactorBytes = null
-                )
+                PreMintItem.create(tokenAmount)
             }
 
             return PreMintBundle(preMintItems)
@@ -49,8 +45,6 @@ public class PreMintBundle private constructor(
     }
 }
 
-// TODO: I don't think this create static method requires the secret and blindingFactorBytes parameters. We can build
-//       them internally.
 /**
  * The data structures that get combined into a [PreMintBundle], required to build a [MintRequest], and are combined
  * with the mint's response to create [Proof]s.
@@ -71,10 +65,9 @@ public class PreMintItem private constructor(
     public val blindingFactor: PrivateKey
 ) {
     public companion object {
-        public fun create(amount: ULong, secret: Secret, blindingFactorBytes: ByteArray?): PreMintItem {
-            require(blindingFactorBytes == null || blindingFactorBytes.size == 32) { "Blinding factor must be 32 bytes long because it's a private key" }
-
-            val blindingFactorBytes = blindingFactorBytes ?: randomBytes(32)
+        public fun create(amount: ULong): PreMintItem {
+            val secret = Secret()
+            val blindingFactorBytes = randomBytes(32)
             val blindingFactor: PrivateKey = PrivateKey(blindingFactorBytes)
             val blindedSecret: PublicKey = hashToCurve(secret.value) + blindingFactor.publicKey()
 

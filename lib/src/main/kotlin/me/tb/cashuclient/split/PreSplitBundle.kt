@@ -7,7 +7,6 @@ package me.tb.cashuclient.split
 
 import fr.acinq.bitcoin.PrivateKey
 import fr.acinq.bitcoin.PublicKey
-import io.ktor.client.request.request
 import me.tb.cashuclient.Secret
 import me.tb.cashuclient.db.DBProof
 import me.tb.cashuclient.db.DBSettings
@@ -64,8 +63,6 @@ public class PreSplitBundle private constructor(
             val preSplitItems: List<PreSplitItem> = requestDenominations.map { amount ->
                 PreSplitItem.create(
                     amount = amount,
-                    secret = Secret(),
-                    blindingFactorBytes = null
                 )
             }
 
@@ -113,10 +110,9 @@ public class PreSplitItem private constructor(
     public val blindingFactor: PrivateKey
 ) {
     public companion object {
-        public fun create(amount: ULong, secret: Secret, blindingFactorBytes: ByteArray?): PreSplitItem {
-            require(blindingFactorBytes == null || blindingFactorBytes.size == 32) { "Blinding factor must be 32 bytes long because it's a private key" }
-
-            val blindingFactorBytes = blindingFactorBytes ?: randomBytes(32)
+        public fun create(amount: ULong): PreSplitItem {
+            val secret: Secret = Secret()
+            val blindingFactorBytes = randomBytes(32)
             val blindingFactor: PrivateKey = PrivateKey(blindingFactorBytes)
             val blindedSecret: PublicKey = hashToCurve(secret.value) + blindingFactor.publicKey()
 
