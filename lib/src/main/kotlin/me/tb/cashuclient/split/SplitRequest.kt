@@ -11,6 +11,6 @@ import me.tb.cashuclient.types.Proof
 
 @Serializable
 public data class SplitRequest(
-    public val proofs: List<Proof>,
+    public val proofs: Proof,
     public val outputs: List<BlindedMessage>
 )

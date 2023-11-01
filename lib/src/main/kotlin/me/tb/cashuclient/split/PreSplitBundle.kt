@@ -7,11 +7,13 @@ package me.tb.cashuclient.split
 
 import fr.acinq.bitcoin.PrivateKey
 import fr.acinq.bitcoin.PublicKey
+import io.ktor.client.request.request
 import me.tb.cashuclient.Secret
 import me.tb.cashuclient.db.DBProof
 import me.tb.cashuclient.db.DBSettings
 import me.tb.cashuclient.hashToCurve
 import me.tb.cashuclient.randomBytes
+import me.tb.cashuclient.decomposeAmount
 import me.tb.cashuclient.types.BlindedMessage
 import me.tb.cashuclient.types.Proof
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -23,11 +25,11 @@ import org.jetbrains.exposed.sql.transactions.transaction
  * response [SplitResponse], the data from this [PreSplitBundle] object is combined with it to create valid tokens
  * (promises).
  *
- * @property preSplitProofs The list of proofs the wallet intends to send to the mint for splitting.
- * @property preSplitItems The list of
+ * @property preSplitProof The proof the wallet intends to send to the mint for splitting.
+ * @property preSplitItems The list of [PreSplitItem]s that will be used to create the [BlindedMessage]s sent to the mint.
  */
 public class PreSplitBundle private constructor(
-    public val preSplitProofs: List<Proof>,
+    public val preSplitProof: Proof,
     public val preSplitItems: List<PreSplitItem>
 ) {
     public fun buildSplitRequest(): SplitRequest {
@@ -39,80 +41,51 @@ public class PreSplitBundle private constructor(
         }
 
         return SplitRequest(
-            preSplitProofs,
+            preSplitProof,
             outputs
         )
     }
 
     public companion object {
         /**
-         * Creates a [PreSplitBundle] from a list of required denominations and available denominations.
+         * Creates a [PreSplitBundle] from a denomination the user wishes to split and a target amount.
          *
-         * @param allAvailableDenominations The list of all available amounts that can be used to create the split.
-         * @param requiredDenominations The list of required token denominations.
+         * @param denominationToSplit The denomination we wish to use to create the split.
+         * @param requiredAmount The target amount.
          */
         public fun create(
-            allAvailableDenominations: List<ULong>,
-            requiredDenominations: List<ULong>,
+            denominationToSplit: ULong,
+            requiredAmount: ULong,
         ): PreSplitBundle {
-            val totalRequired: ULong = requiredDenominations.sum()
-            val denominationsToUse = chooseDenominations(allAvailableDenominations, totalRequired)
-            val preSplitItems: List<PreSplitItem> = requiredDenominations.map { tokenAmount ->
+            val requiredDenominations: List<ULong> = decomposeAmount(requiredAmount)
+            val changeDenominations: List<ULong> = decomposeAmount(denominationToSplit - requiredAmount)
+            val requestDenominations = requiredDenominations + changeDenominations
+
+            val preSplitItems: List<PreSplitItem> = requestDenominations.map { amount ->
                 PreSplitItem.create(
-                    amount = tokenAmount,
+                    amount = amount,
                     secret = Secret(),
                     blindingFactorBytes = null
                 )
             }
 
-            // Go get proofs in the database for the amounts required
+            // Go get a proof in the database for the denomination required
             DBSettings.db
-            // Check if we have these amounts in the database
-            val proofs: List<Proof> = denominationsToUse.map { amt ->
-                transaction {
-                    SchemaUtils.create(DBProof)
-                    val proof: Proof? = DBProof.select { DBProof.amount eq amt }.firstOrNull()?.let {
-                        Proof(
-                            amount = it[DBProof.amount],
-                            secret = it[DBProof.secret],
-                            C = it[DBProof.C],
-                            id = it[DBProof.id],
-                            script = it[DBProof.script]
-                        )
-                    }
-                    proof ?: throw Exception("No proof found for amount $amt")
+            val proof: Proof = transaction {
+                SchemaUtils.create(DBProof)
+                val proof: Proof? = DBProof.select { DBProof.amount eq denominationToSplit }.firstOrNull()?.let {
+                    Proof(
+                        amount = it[DBProof.amount],
+                        secret = it[DBProof.secret],
+                        C = it[DBProof.C],
+                        id = it[DBProof.id],
+                        script = it[DBProof.script]
+                    )
                 }
+                proof ?: throw Exception("No proof found for denomination $denominationToSplit")
             }
 
-            return PreSplitBundle(
-                preSplitProofs = proofs,
-                preSplitItems = preSplitItems
-            )
-        }
-
-        // We know the denominations we want, but we still need to decide which of our available denominations to
-        // use. Moreover, what we have might not equal the amount exactly, so we'll need to add extra outputs to our
-        // list of required outputs to make the amounts match.
-        // TODO: The denominations to send will be chosen by picking the biggest denominations first up until we
-        //       reach our target amount. This will likely result in wallets that have a ton of smaller
-        //       denominations. Consider a more sophisticated approach. Maybe even building from lowest amount first
-        //       half of the time?
-        private fun chooseDenominations(availableDenominations: List<ULong>, targetAmount: ULong): List<ULong> {
-            val sortedDenominations = availableDenominations.sortedDescending()
-            val selectedDenominations = mutableListOf<ULong>()
-            var currentSum = 0uL
-
-            for (denomination in sortedDenominations) {
-                if (currentSum < targetAmount) {
-                    selectedDenominations.add(denomination)
-                    currentSum += denomination
-                }
-            }
-
-            val changeRequired = currentSum - targetAmount
-            selectedDenominations.add(changeRequired)
-
-            return selectedDenominations
+            return PreSplitBundle(proof, preSplitItems)
         }
     }
 }
@@ -135,7 +108,7 @@ public class PreSplitBundle private constructor(
  */
 public class PreSplitItem private constructor(
     public val amount: ULong,
-    private val secret: Secret,
+    public val secret: Secret,
     public val blindedSecret: PublicKey,
     public val blindingFactor: PrivateKey
 ) {

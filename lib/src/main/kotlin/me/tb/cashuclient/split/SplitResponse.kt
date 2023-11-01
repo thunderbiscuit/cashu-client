@@ -5,8 +5,17 @@
 
 package me.tb.cashuclient.split
 
+import kotlinx.serialization.Serializable
 import me.tb.cashuclient.types.BlindedSignature
 
+// TODO: The MintResponse and SplitResponse are the same class. We can clean this up.
+
+/**
+ * This is the object returned by the split endpoint and consists of a list of blinded signatures.
+ *
+ * @param promises List of blinded signatures.
+ */
+@Serializable
 public data class SplitResponse(
-    public val promises: List<BlindedSignature>
+    val promises: List<BlindedSignature>
 )

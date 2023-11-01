@@ -7,14 +7,14 @@ package me.tb.cashuclient
 
 import fr.acinq.bitcoin.PublicKey
 import fr.acinq.bitcoin.crypto.Digest
+import me.tb.cashuclient.types.SplitRequired
 import java.security.SecureRandom
 import kotlin.math.pow
 
 /**
- * Given a total amount, returns the shortest list of token values to create this total, e.g. 13 is [1, 4, 8].
- * Note: this function is not related with the split operation that happens in the wallet.
+ * Given a total amount, returns the shortest list of denominations to create this total, e.g. 13 is [1, 4, 8].
  */
-public fun splitAmount(value: ULong): List<ULong> {
+public fun decomposeAmount(value: ULong): List<ULong> {
     require(value != 0uL) { "Zero amounts do not make sense in this context." }
     require(value > 0uL) { "Negative amounts do not make sense in this context." }
 
@@ -67,10 +67,10 @@ public fun base64ToBase64UrlSafe(base64: String): String {
 }
 
 /*
- * Given a list of available token amounts and a target amount, returns a [SplitRequired] that lets you know if you'll
- * need a split or not. If you don't need a split, the final list of token amounts is returned. If you do need a split,
- * a list of token amounts that almost add up to the target amount is returned, along with the list of denominations
- * you're missing to reach the target amount.
+ * Given a list of available denominations and a target amount, return a [SplitRequired] that lets you know if you'll
+ * need a split or not. If you don't need a split, the final list of denominations is returned. If you do need a split,
+ * a list of token amounts that almost add up to the target amount is returned, along with one more denomination you'll
+ * need to split in order to hit the target amount.
  *
  * TODO: This function is where a lot of the gains could be made in terms of performance and resource utilization.
  *
@@ -78,40 +78,23 @@ public fun base64ToBase64UrlSafe(base64: String): String {
  * @param targetAmount The target amount to reach.
  */
 public fun isSplitRequired(availableDenominations: List<ULong>, targetAmount: ULong): SplitRequired {
-    var remainingAmount: ULong = targetAmount
-    val finalList: MutableList<ULong> = mutableListOf()
+    val sortedDenominations = availableDenominations.sortedDescending()
+    val selectedDenominations = mutableListOf<ULong>()
+    var currentSum = 0uL
 
-    for (availableAmount in availableDenominations) {
-        if (remainingAmount == 0.toULong()) {
-            return SplitRequired.No(finalList)
+    for (denomination in sortedDenominations) {
+        if (currentSum == targetAmount) {
+            return SplitRequired.No(selectedDenominations)
         }
 
-        if (availableAmount <= remainingAmount) {
-            finalList.add(availableAmount)
-            remainingAmount -= availableAmount
-        } else if (availableAmount > remainingAmount) {
-            // Small optimization in case we get lucky: if the remaining amount is in the list of available amounts,
-            // we can just add it and return the final list.
-            if (remainingAmount in availableDenominations) {
-                finalList.add(remainingAmount)
-                remainingAmount -= remainingAmount
-            } else {
-                val requiredDenominations = splitAmount(remainingAmount)
-                return SplitRequired.Yes(finalList, requiredDenominations)
-            }
+        if (currentSum + denomination > targetAmount) {
+            val requiredAmount = targetAmount - currentSum
+            return SplitRequired.Yes(selectedDenominations, denomination, requiredAmount)
+        } else {
+            selectedDenominations.add(denomination)
+            currentSum += denomination
         }
     }
 
     throw Exception("Something went wrong in isSplitRequired")
-}
-
-public sealed class SplitRequired {
-    public data class No(
-        val finalList: List<ULong>
-    ): SplitRequired()
-
-    public data class Yes(
-        val almostFinishedList: List<ULong>,
-        val requiredTokens: List<ULong>,
-    ): SplitRequired()
 }

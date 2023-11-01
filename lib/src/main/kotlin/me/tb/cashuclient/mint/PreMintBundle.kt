@@ -10,7 +10,7 @@ import fr.acinq.bitcoin.PublicKey
 import me.tb.cashuclient.Secret
 import me.tb.cashuclient.hashToCurve
 import me.tb.cashuclient.randomBytes
-import me.tb.cashuclient.splitAmount
+import me.tb.cashuclient.decomposeAmount
 import me.tb.cashuclient.types.BlindedMessage
 
 /**
@@ -35,7 +35,7 @@ public class PreMintBundle private constructor(
 
     public companion object {
         public fun create(value: ULong): PreMintBundle {
-            val tokenAmounts = splitAmount(value)
+            val tokenAmounts = decomposeAmount(value)
             val preMintItems: List<PreMintItem> = tokenAmounts.map { tokenAmount ->
                 PreMintItem.create(
                     amount = tokenAmount,
