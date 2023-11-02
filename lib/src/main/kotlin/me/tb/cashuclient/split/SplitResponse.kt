@@ -7,6 +7,7 @@ package me.tb.cashuclient.split
 
 import kotlinx.serialization.Serializable
 import me.tb.cashuclient.types.BlindedSignature
+import me.tb.cashuclient.types.BlindedSignaturesResponse
 
 // TODO: The MintResponse and SplitResponse are the same class. We can clean this up.
 
@@ -17,5 +18,5 @@ import me.tb.cashuclient.types.BlindedSignature
  */
 @Serializable
 public data class SplitResponse(
-    val promises: List<BlindedSignature>
-)
+    override val promises: List<BlindedSignature>
+) : BlindedSignaturesResponse

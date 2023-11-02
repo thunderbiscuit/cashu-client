@@ -7,6 +7,7 @@ package me.tb.cashuclient.mint
 
 import kotlinx.serialization.Serializable
 import me.tb.cashuclient.types.BlindedSignature
+import me.tb.cashuclient.types.BlindedSignaturesResponse
 
 /**
  * This is the object returned by the mint endpoint and consists of a list of blinded signatures.
@@ -15,5 +16,5 @@ import me.tb.cashuclient.types.BlindedSignature
  */
 @Serializable
 public data class MintResponse(
-    val promises: List<BlindedSignature>
-)
+    override val promises: List<BlindedSignature>
+) : BlindedSignaturesResponse

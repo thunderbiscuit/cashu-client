@@ -10,11 +10,12 @@ import fr.acinq.bitcoin.PublicKey
 import me.tb.cashuclient.Secret
 import me.tb.cashuclient.db.DBProof
 import me.tb.cashuclient.db.DBSettings
-import me.tb.cashuclient.hashToCurve
-import me.tb.cashuclient.randomBytes
 import me.tb.cashuclient.decomposeAmount
 import me.tb.cashuclient.types.BlindedMessage
+import me.tb.cashuclient.types.BlindingData
+import me.tb.cashuclient.types.PreRequestBundle
 import me.tb.cashuclient.types.Proof
+import me.tb.cashuclient.types.createBlindingData
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -24,15 +25,16 @@ import org.jetbrains.exposed.sql.transactions.transaction
  * response [SplitResponse], the data from this [PreSplitBundle] object is combined with it to create valid tokens
  * (promises).
  *
- * @property preSplitProof The proof the wallet intends to send to the mint for splitting.
- * @property preSplitItems The list of [PreSplitItem]s that will be used to create the [BlindedMessage]s sent to the mint.
+ * @property proofToSplit The proof the wallet intends to send to the mint for splitting.
+ * @property blindingDataItems The list of [PreSplitItem]s that will be used to create the [BlindedMessage]s sent to the
+ * mint.
  */
 public class PreSplitBundle private constructor(
-    public val preSplitProof: Proof,
-    public val preSplitItems: List<PreSplitItem>
-) {
+    public val proofToSplit: Proof,
+    public override val blindingDataItems: List<PreSplitItem>
+) : PreRequestBundle {
     public fun buildSplitRequest(): SplitRequest {
-        val outputs: List<BlindedMessage> = preSplitItems.map { preSplitItem ->
+        val outputs: List<BlindedMessage> = blindingDataItems.map { preSplitItem ->
             BlindedMessage(
                 amount = preSplitItem.amount,
                 blindedSecret = preSplitItem.blindedSecret.toString()
@@ -40,7 +42,7 @@ public class PreSplitBundle private constructor(
         }
 
         return SplitRequest(
-            preSplitProof,
+            proofToSplit,
             outputs
         )
     }
@@ -87,9 +89,6 @@ public class PreSplitBundle private constructor(
     }
 }
 
-// TODO: I don't think this create static method requires the secret and blindingFactorBytes parameters. We can build
-//       them internally.
-// TODO: If the PreSplitItem and PreMintItem are the same, we should consider using a common type.
 /**
  * The data structures that get combined into a [PreSplitBundle] required to build a [SplitRequest], and are combined
  * with the mint's response to create [Proof]s.
@@ -104,18 +103,14 @@ public class PreSplitBundle private constructor(
  * @param blindingFactor The blinding factor r, private key of the point R that is used to blind key Y.
  */
 public class PreSplitItem private constructor(
-    public val amount: ULong,
-    public val secret: Secret,
-    public val blindedSecret: PublicKey,
-    public val blindingFactor: PrivateKey
-) {
+    public override val amount: ULong,
+    public override val secret: Secret,
+    public override val blindedSecret: PublicKey,
+    public override val blindingFactor: PrivateKey
+) : BlindingData {
     public companion object {
         public fun create(amount: ULong): PreSplitItem {
-            val secret: Secret = Secret()
-            val blindingFactorBytes = randomBytes(32)
-            val blindingFactor: PrivateKey = PrivateKey(blindingFactorBytes)
-            val blindedSecret: PublicKey = hashToCurve(secret.value) + blindingFactor.publicKey()
-
+            val (secret, blindedSecret, blindingFactor) = createBlindingData()
             return PreSplitItem(amount, secret, blindedSecret, blindingFactor)
         }
     }

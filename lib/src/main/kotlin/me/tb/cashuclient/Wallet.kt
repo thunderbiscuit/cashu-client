@@ -43,9 +43,12 @@ import me.tb.cashuclient.mint.MintRequest
 import me.tb.cashuclient.mint.MintResponse
 import me.tb.cashuclient.split.PreSplitBundle
 import me.tb.cashuclient.split.SplitResponse
+import me.tb.cashuclient.types.BlindedSignaturesResponse
+import me.tb.cashuclient.types.PreRequestBundle
 import me.tb.cashuclient.types.Proof
 import me.tb.cashuclient.types.SplitRequired
 import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
@@ -156,10 +159,9 @@ public class Wallet(
         }.await()
         client.close()
 
-        // println("Mint response: ${response.body<String>()}")
         val mintResponse: MintResponse = response.body()
 
-        processMintResponse(preMintBundle, mintResponse)
+        processBlindedSignaturesResponse(preMintBundle, mintResponse)
     }
 
     // TODO: This method doesn't handle mint errors yet.
@@ -197,50 +199,6 @@ public class Wallet(
         }
 
         fundingInvoiceResponse
-    }
-
-    /**
-     * The wallet processes the mint's response by unblinding the signatures and adding the [Proof]s to its database.
-     */
-    @OptIn(ExperimentalEncodingApi::class)
-    private fun processMintResponse(preMintBundle: PreMintBundle, mintResponse: MintResponse): Unit {
-        require(preMintBundle.preMintItems.size == mintResponse.promises.size) {
-            "The number of outputs in the mint request and promises in the mint response must be the same."
-        }
-        val scopedActiveKeyset = this.activeKeyset ?: throw Exception("The wallet must have an active keyset for the mint.")
-
-        (preMintBundle.preMintItems zip mintResponse.promises).forEach { (preMintItem, promise) ->
-            // Unblinding is done like so: C = C_ - rK
-            val r: PrivateKey = preMintItem.blindingFactor
-            val K: PublicKey = scopedActiveKeyset.getKey(preMintItem.amount)
-            val rK: PublicKey = K.times(r)
-            val unblindedKey: PublicKey = PublicKey.fromHex(promise.blindedKey).minus(rK)
-
-            // Note: The secret is initially a ByteArray and is converted to a Base64 string for storage in the database,
-            //       and the mints currently use the utf-8 bytes out of this string instead of the actual ByteArray.
-            val proof: Proof = Proof(
-                amount = promise.amount,
-                secret = Base64.encode(preMintItem.secret.value),
-                C = unblindedKey.toHex(),
-                id = scopedActiveKeyset.keysetId.value,
-                script = null
-            )
-
-            println("Adding proof to database: $proof")
-
-            DBSettings.db
-            transaction {
-                SchemaUtils.create(DBProof)
-
-                DBProof.insert {
-                    it[amount] = proof.amount
-                    it[secret] = proof.secret
-                    it[C] = proof.C
-                    it[id] = proof.id
-                    it[script] = null
-                }
-            }
-        }
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -379,26 +337,31 @@ public class Wallet(
         val splitResponse: SplitResponse = response.body()
 
         // TODO: Process the mint response
-        processSplitResponse(preSplitRequestBundle, splitResponse)
+        processBlindedSignaturesResponse(preSplitRequestBundle, splitResponse)
 
         val newAvailableDenominations = decomposeAmount(requiredAmount)
         newAvailableDenominations
     }
 
+    // ---------------------------------------------------------------------------------------------
+    // Process BlindedSignatures
+    // ---------------------------------------------------------------------------------------------
+
     /**
-     * The wallet processes the mint's response by unblinding the signatures and adding the [Proof]s to its database.
+     * The wallet processes the mint's response by unblinding the signatures and adding the [Proof]s to its database. If
+     * this processing is for a split request, the wallet also deletes the proof that was spent to create the split.
      */
     @OptIn(ExperimentalEncodingApi::class)
-    private fun processSplitResponse(preSplitBundle: PreSplitBundle, splitResponse: SplitResponse): Unit {
-        require(preSplitBundle.preSplitItems.size == splitResponse.promises.size) {
-            "The number of outputs in the mint request and promises in the mint response must be the same."
+    private fun processBlindedSignaturesResponse(requestBundle: PreRequestBundle, mintResponse: BlindedSignaturesResponse): Unit {
+        require(requestBundle.blindingDataItems.size == mintResponse.promises.size) {
+            "The number of outputs in the request and promises in the response must be the same."
         }
         val scopedActiveKeyset = this.activeKeyset ?: throw Exception("The wallet must have an active keyset for the mint.")
 
-        (preSplitBundle.preSplitItems zip splitResponse.promises).forEach { (preSplitItem, promise) ->
+        (requestBundle.blindingDataItems zip mintResponse.promises).forEach { (blindingData, promise) ->
             // Unblinding is done like so: C = C_ - rK
-            val r: PrivateKey = preSplitItem.blindingFactor
-            val K: PublicKey = scopedActiveKeyset.getKey(preSplitItem.amount)
+            val r: PrivateKey = blindingData.blindingFactor
+            val K: PublicKey = scopedActiveKeyset.getKey(blindingData.amount)
             val rK: PublicKey = K.times(r)
             val unblindedKey: PublicKey = PublicKey.fromHex(promise.blindedKey).minus(rK)
 
@@ -406,7 +369,7 @@ public class Wallet(
             //       and the mints currently use the utf-8 bytes out of this string instead of the actual ByteArray.
             val proof: Proof = Proof(
                 amount = promise.amount,
-                secret = Base64.encode(preSplitItem.secret.value),
+                secret = Base64.encode(blindingData.secret.value),
                 C = unblindedKey.toHex(),
                 id = scopedActiveKeyset.keysetId.value,
                 script = null
@@ -425,6 +388,15 @@ public class Wallet(
                     it[id] = proof.id
                     it[script] = null
                 }
+            }
+        }
+
+        if (requestBundle is PreSplitBundle) {
+            DBSettings.db
+            transaction {
+                SchemaUtils.create(DBProof)
+                val secretToDelete = requestBundle.proofToSplit.secret
+                DBProof.deleteWhere { secret eq secretToDelete }
             }
         }
     }

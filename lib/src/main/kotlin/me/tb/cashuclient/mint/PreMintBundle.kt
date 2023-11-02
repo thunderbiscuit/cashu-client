@@ -8,22 +8,23 @@ package me.tb.cashuclient.mint
 import fr.acinq.bitcoin.PrivateKey
 import fr.acinq.bitcoin.PublicKey
 import me.tb.cashuclient.Secret
-import me.tb.cashuclient.hashToCurve
-import me.tb.cashuclient.randomBytes
 import me.tb.cashuclient.decomposeAmount
 import me.tb.cashuclient.types.BlindedMessage
+import me.tb.cashuclient.types.BlindingData
+import me.tb.cashuclient.types.PreRequestBundle
+import me.tb.cashuclient.types.createBlindingData
 
 /**
  * The data bundle Alice must create prior to communicating with the mint. Once the mint sends a response,
  * this data is then combined with the [MintResponse] to create valid tokens (promises).
  *
- * @property preMintItems The list of [PreMintItem]s that will be sent to the mint.
+ * @property blindingDataItems The list of [PreMintItem]s that will be sent to the mint.
  */
 public class PreMintBundle private constructor(
-    public val preMintItems: List<PreMintItem>
-) {
+    override val blindingDataItems: List<PreMintItem>
+) : PreRequestBundle {
     public fun buildMintRequest(): MintRequest {
-        val outputs: List<BlindedMessage> = preMintItems.map { preMintItem ->
+        val outputs: List<BlindedMessage> = blindingDataItems.map { preMintItem ->
             BlindedMessage(
                 amount = preMintItem.amount,
                 blindedSecret = preMintItem.blindedSecret.toString()
@@ -59,18 +60,14 @@ public class PreMintBundle private constructor(
  * @param blindingFactor The blinding factor r, private key of the point R that is used to blind key Y.
  */
 public class PreMintItem private constructor(
-    public val amount: ULong,
-    public val secret: Secret,
-    public val blindedSecret: PublicKey,
-    public val blindingFactor: PrivateKey
-) {
+    public override val amount: ULong,
+    public override val secret: Secret,
+    public override val blindedSecret: PublicKey,
+    public override val blindingFactor: PrivateKey
+) : BlindingData {
     public companion object {
         public fun create(amount: ULong): PreMintItem {
-            val secret = Secret()
-            val blindingFactorBytes = randomBytes(32)
-            val blindingFactor: PrivateKey = PrivateKey(blindingFactorBytes)
-            val blindedSecret: PublicKey = hashToCurve(secret.value) + blindingFactor.publicKey()
-
+            val (secret, blindedSecret, blindingFactor) = createBlindingData()
             return PreMintItem(amount, secret, blindedSecret, blindingFactor)
         }
     }
