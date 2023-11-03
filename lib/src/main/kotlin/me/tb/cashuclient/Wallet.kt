@@ -186,8 +186,7 @@ public class Wallet(
         val fundingInvoiceResponse: InvoiceResponse = response.body()
 
         // Part 2: add information to database
-        DBSettings.db
-        transaction {
+        transaction(DBSettings.db) {
             SchemaUtils.create(DBBolt11Payment)
 
             // TODO: Think of what to do if the bolt11 invoice is already in the database
@@ -244,8 +243,7 @@ public class Wallet(
             ?.truncateToSatoshi()
             ?.toULong() ?: throw Exception("Payment request does not have an amount.")
 
-        DBSettings.db
-        val availableDenominations: List<ULong> = transaction {
+        val availableDenominations: List<ULong> = transaction(DBSettings.db) {
             SchemaUtils.create(DBProof)
             DBProof
                 .selectAll()
@@ -307,8 +305,7 @@ public class Wallet(
         // TODO: Should we simply mark them as archived instead of deleting them? We could have a separate method for
         //       collecting the proofs that are archived and deleting them upon user request.
         // TODO: Should we add the preimage to the database?
-        DBSettings.db
-        transaction {
+        transaction(DBSettings.db) {
             SchemaUtils.create(DBProof)
             val secretsToDelete = preMeltBundle.proofs.map { it.secret }
             DBProof.deleteWhere { secret inList secretsToDelete }
@@ -377,8 +374,7 @@ public class Wallet(
 
             println("Adding proof to database: $proof")
 
-            DBSettings.db
-            transaction {
+            transaction(DBSettings.db) {
                 SchemaUtils.create(DBProof)
 
                 DBProof.insert {
@@ -392,8 +388,7 @@ public class Wallet(
         }
 
         if (requestBundle is PreSplitBundle) {
-            DBSettings.db
-            transaction {
+            transaction(DBSettings.db) {
                 SchemaUtils.create(DBProof)
                 val secretToDelete = requestBundle.proofToSplit.secret
                 DBProof.deleteWhere { secret eq secretToDelete }
