@@ -41,8 +41,8 @@ import me.tb.cashuclient.melt.MeltResponse
 import me.tb.cashuclient.melt.PreMeltBundle
 import me.tb.cashuclient.mint.MintRequest
 import me.tb.cashuclient.mint.MintResponse
-import me.tb.cashuclient.split.PreSplitBundle
-import me.tb.cashuclient.split.SplitResponse
+import me.tb.cashuclient.swap.PreSwapBundle
+import me.tb.cashuclient.swap.SwapResponse
 import me.tb.cashuclient.types.BlindedSignaturesResponse
 import me.tb.cashuclient.types.PreRequestBundle
 import me.tb.cashuclient.types.Proof
@@ -319,8 +319,8 @@ public class Wallet(
     private fun split(denominationToSplit: ULong, requiredAmount: ULong): NewAvailableDenominations = runBlocking {
         val client = createClient()
 
-        val preSplitRequestBundle = PreSplitBundle.create(denominationToSplit, requiredAmount)
-        val splitRequest = preSplitRequestBundle.buildSplitRequest()
+        val preSplitRequestBundle = PreSwapBundle.create(denominationToSplit, requiredAmount)
+        val splitRequest = preSplitRequestBundle.buildSwapRequest()
 
         val response = async {
             client.post("$mintUrl/melt") {
@@ -331,7 +331,7 @@ public class Wallet(
         }.await()
         client.close()
 
-        val splitResponse: SplitResponse = response.body()
+        val splitResponse: SwapResponse = response.body()
 
         // TODO: Process the mint response
         processBlindedSignaturesResponse(preSplitRequestBundle, splitResponse)
@@ -387,7 +387,7 @@ public class Wallet(
             }
         }
 
-        if (requestBundle is PreSplitBundle) {
+        if (requestBundle is PreSwapBundle) {
             transaction(DBSettings.db) {
                 SchemaUtils.create(DBProof)
                 val secretToDelete = requestBundle.proofToSplit.secret

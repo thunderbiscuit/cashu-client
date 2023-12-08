@@ -3,7 +3,7 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the ./LICENSE file.
  */
  
-package me.tb.cashuclient.split
+package me.tb.cashuclient.swap
 
 import fr.acinq.bitcoin.PrivateKey
 import fr.acinq.bitcoin.PublicKey
@@ -22,26 +22,27 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 /**
  * The data bundle Alice must create prior to communicating with the mint requesting a split. Once the mint sends a
- * response [SplitResponse], the data from this [PreSplitBundle] object is combined with it to create valid tokens
+ * response [SwapResponse], the data from this [PreSwapBundle] object is combined with it to create valid tokens
  * (promises).
  *
  * @property proofToSplit The proof the wallet intends to send to the mint for splitting.
  * @property blindingDataItems The list of [PreSplitItem]s that will be used to create the [BlindedMessage]s sent to the
  * mint.
  */
-public class PreSplitBundle private constructor(
+public class PreSwapBundle private constructor(
     public val proofToSplit: Proof,
     public override val blindingDataItems: List<PreSplitItem>
 ) : PreRequestBundle {
-    public fun buildSplitRequest(): SplitRequest {
+    public fun buildSwapRequest(): SwapRequest {
         val outputs: List<BlindedMessage> = blindingDataItems.map { preSplitItem ->
             BlindedMessage(
                 amount = preSplitItem.amount,
+                id = "00123456",
                 blindedSecret = preSplitItem.blindedSecret.toString()
             )
         }
 
-        return SplitRequest(
+        return SwapRequest(
             proofToSplit,
             outputs
         )
@@ -49,7 +50,7 @@ public class PreSplitBundle private constructor(
 
     public companion object {
         /**
-         * Creates a [PreSplitBundle] from a denomination the user wishes to split and a target amount.
+         * Creates a [PreSwapBundle] from a denomination the user wishes to split and a target amount.
          *
          * @param denominationToSplit The denomination we wish to use to create the split.
          * @param requiredAmount The target amount.
@@ -57,7 +58,7 @@ public class PreSplitBundle private constructor(
         public fun create(
             denominationToSplit: ULong,
             requiredAmount: ULong,
-        ): PreSplitBundle {
+        ): PreSwapBundle {
             val requiredDenominations: List<ULong> = decomposeAmount(requiredAmount)
             val changeDenominations: List<ULong> = decomposeAmount(denominationToSplit - requiredAmount)
             val requestDenominations = requiredDenominations + changeDenominations
@@ -84,13 +85,13 @@ public class PreSplitBundle private constructor(
                 proof ?: throw Exception("No proof found for denomination $denominationToSplit")
             }
 
-            return PreSplitBundle(proof, preSplitItems)
+            return PreSwapBundle(proof, preSplitItems)
         }
     }
 }
 
 /**
- * The data structures that get combined into a [PreSplitBundle] required to build a [SplitRequest], and are combined
+ * The data structures that get combined into a [PreSwapBundle] required to build a [SwapRequest], and are combined
  * with the mint's response to create [Proof]s.
  *
  * The amount and blindedSecret are required to build the [BlindedMessage]s that are sent to the mint and which the mint
