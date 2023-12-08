@@ -31,20 +31,23 @@ public class Keyset(keyset: Map<ULong, PublicKey>) {
     }
 
     /**
-     * Derive the [KeysetId] for a given [Keyset].
+     * Derive the [KeysetId] for a given [Keyset]. Currently only derives 0x00 version keyset ids.
      */
+    @OptIn(ExperimentalStdlibApi::class)
     private fun deriveKeysetId(): KeysetId {
         val allKeysConcatenated: String = buildString {
             sortedKeyset.values.forEach { publicKey ->
                 append(publicKey)
             }
         }
-        val sha256Bytes: ByteArray = Digest
+        val versionPrefix = byteArrayOf(0x00)
+        val bytes: ByteArray = Digest
             .sha256()
             .hash(allKeysConcatenated.toByteArray(Charsets.UTF_8))
-            .sliceArray(0..8)
-        val base64String = Base64.getEncoder().encodeToString(sha256Bytes)
-        return KeysetId(base64String)
+            .sliceArray(0..<7)
+        val keysetId = versionPrefix + bytes
+
+        return KeysetId(keysetId.toHexString())
     }
 
     /**

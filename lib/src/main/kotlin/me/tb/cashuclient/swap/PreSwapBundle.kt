@@ -7,6 +7,7 @@ package me.tb.cashuclient.swap
 
 import fr.acinq.bitcoin.PrivateKey
 import fr.acinq.bitcoin.PublicKey
+import me.tb.cashuclient.KeysetId
 import me.tb.cashuclient.Secret
 import me.tb.cashuclient.db.DBProof
 import me.tb.cashuclient.db.DBSettings
@@ -28,16 +29,18 @@ import org.jetbrains.exposed.sql.transactions.transaction
  * @property proofToSplit The proof the wallet intends to send to the mint for splitting.
  * @property blindingDataItems The list of [PreSplitItem]s that will be used to create the [BlindedMessage]s sent to the
  * mint.
+ * @property keysetId The [KeysetId] of the keyset the wallet expects will be signing the [BlindedMessage]s.
  */
 public class PreSwapBundle private constructor(
     public val proofToSplit: Proof,
-    public override val blindingDataItems: List<PreSplitItem>
+    public override val blindingDataItems: List<PreSplitItem>,
+    public override val keysetId: KeysetId
 ) : PreRequestBundle {
     public fun buildSwapRequest(): SwapRequest {
         val outputs: List<BlindedMessage> = blindingDataItems.map { preSplitItem ->
             BlindedMessage(
                 amount = preSplitItem.amount,
-                id = "00123456",
+                id = keysetId.value,
                 blindedSecret = preSplitItem.blindedSecret.toString()
             )
         }
@@ -58,6 +61,7 @@ public class PreSwapBundle private constructor(
         public fun create(
             denominationToSplit: ULong,
             requiredAmount: ULong,
+            keysetId: KeysetId,
         ): PreSwapBundle {
             val requiredDenominations: List<ULong> = decomposeAmount(requiredAmount)
             val changeDenominations: List<ULong> = decomposeAmount(denominationToSplit - requiredAmount)
@@ -85,7 +89,7 @@ public class PreSwapBundle private constructor(
                 proof ?: throw Exception("No proof found for denomination $denominationToSplit")
             }
 
-            return PreSwapBundle(proof, preSplitItems)
+            return PreSwapBundle(proof, preSplitItems, keysetId)
         }
     }
 }

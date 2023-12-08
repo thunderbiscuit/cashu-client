@@ -17,5 +17,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 public data class BlindedMessage(
     val amount: ULong,
+    val id: String,
     @SerialName("B_") val blindedSecret: String
 )

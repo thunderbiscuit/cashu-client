@@ -59,7 +59,6 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 
 public typealias NewAvailableDenominations = List<ULong>
 
-@Suppress("LocalVariableName")
 public class Wallet(
     public var activeKeyset: Keyset? = null,
     private val mintUrl: String
@@ -144,7 +143,7 @@ public class Wallet(
         val invoiceResponse: InvoiceResponse = requestFundingInvoice(amount, client)
 
         // Use it to build a mint request
-        val preMintBundle: PreMintBundle = PreMintBundle.create(amount.toULong())
+        val preMintBundle: PreMintBundle = PreMintBundle.create(amount.toULong(), activeKeyset!!.keysetId)
         val mintingRequest: MintRequest = preMintBundle.buildMintRequest()
 
         val response = async {
@@ -319,7 +318,7 @@ public class Wallet(
     private fun split(denominationToSplit: ULong, requiredAmount: ULong): NewAvailableDenominations = runBlocking {
         val client = createClient()
 
-        val preSplitRequestBundle = PreSwapBundle.create(denominationToSplit, requiredAmount)
+        val preSplitRequestBundle = PreSwapBundle.create(denominationToSplit, requiredAmount, activeKeyset!!.keysetId)
         val splitRequest = preSplitRequestBundle.buildSwapRequest()
 
         val response = async {

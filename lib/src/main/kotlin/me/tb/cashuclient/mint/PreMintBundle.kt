@@ -7,6 +7,7 @@ package me.tb.cashuclient.mint
 
 import fr.acinq.bitcoin.PrivateKey
 import fr.acinq.bitcoin.PublicKey
+import me.tb.cashuclient.KeysetId
 import me.tb.cashuclient.Secret
 import me.tb.cashuclient.decomposeAmount
 import me.tb.cashuclient.types.BlindedMessage
@@ -19,14 +20,17 @@ import me.tb.cashuclient.types.createBlindingData
  * this data is then combined with the [MintResponse] to create valid tokens (promises).
  *
  * @property blindingDataItems The list of [PreMintItem]s that will be sent to the mint.
+ * @property keysetId The [KeysetId] of the keyset the wallet expects will be signing the [BlindedMessage]s.
  */
 public class PreMintBundle private constructor(
-    override val blindingDataItems: List<PreMintItem>
+    override val blindingDataItems: List<PreMintItem>,
+    override val keysetId: KeysetId
 ) : PreRequestBundle {
     public fun buildMintRequest(): MintRequest {
         val outputs: List<BlindedMessage> = blindingDataItems.map { preMintItem ->
             BlindedMessage(
                 amount = preMintItem.amount,
+                id = keysetId.value,
                 blindedSecret = preMintItem.blindedSecret.toString()
             )
         }
@@ -35,13 +39,13 @@ public class PreMintBundle private constructor(
     }
 
     public companion object {
-        public fun create(value: ULong): PreMintBundle {
+        public fun create(value: ULong, keysetId: KeysetId): PreMintBundle {
             val tokenAmounts = decomposeAmount(value)
             val preMintItems: List<PreMintItem> = tokenAmounts.map { tokenAmount ->
                 PreMintItem.create(tokenAmount)
             }
 
-            return PreMintBundle(preMintItems)
+            return PreMintBundle(preMintItems, keysetId)
         }
     }
 }
