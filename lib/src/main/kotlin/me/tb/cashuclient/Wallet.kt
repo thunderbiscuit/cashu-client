@@ -352,7 +352,7 @@ public class Wallet(
         require(requestBundle.blindingDataItems.size == mintResponse.promises.size) {
             "The number of outputs in the request and promises in the response must be the same."
         }
-        val scopedActiveKeyset = this.activeKeyset ?: throw Exception("The wallet must have an active keyset for the mint.")
+        val scopedActiveKeyset = activeKeyset ?: throw Exception("The wallet must have an active keyset for the mint.")
 
         (requestBundle.blindingDataItems zip mintResponse.promises).forEach { (blindingData, promise) ->
             // Unblinding is done like so: C = C_ - rK
@@ -365,9 +365,9 @@ public class Wallet(
             //       and the mints currently use the utf-8 bytes out of this string instead of the actual ByteArray.
             val proof: Proof = Proof(
                 amount = promise.amount,
+                id = scopedActiveKeyset.keysetId.value,
                 secret = Base64.encode(blindingData.secret.value),
                 C = unblindedKey.toHex(),
-                id = scopedActiveKeyset.keysetId.value,
                 script = null
             )
 

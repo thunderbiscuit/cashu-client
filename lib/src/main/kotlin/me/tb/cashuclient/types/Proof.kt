@@ -13,8 +13,8 @@ import kotlinx.serialization.Serializable
 @Suppress("PropertyName")
 @Serializable
 public data class Proof(
-    public val id: String,
     public val amount: ULong,
+    public val id: String,
     public val secret: String,
     public val C: String,
     public val script: String? = null

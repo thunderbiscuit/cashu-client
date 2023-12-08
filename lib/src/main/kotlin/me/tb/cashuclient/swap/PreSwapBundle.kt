@@ -80,9 +80,9 @@ public class PreSwapBundle private constructor(
                 val proof: Proof? = DBProof.select { DBProof.amount eq denominationToSplit }.firstOrNull()?.let {
                     Proof(
                         amount = it[DBProof.amount],
+                        id = it[DBProof.id],
                         secret = it[DBProof.secret],
                         C = it[DBProof.C],
-                        id = it[DBProof.id],
                         script = it[DBProof.script]
                     )
                 }

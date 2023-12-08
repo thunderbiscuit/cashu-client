@@ -26,14 +26,14 @@ class TokenV3Test {
     fun `Build token from scratch`() {
         val mint = "https://8333.space:3338"
         val proof1 = Proof(
-            id = "DSAl9nvvyfva",
             amount = 2uL,
+            id = "DSAl9nvvyfva",
             secret = "EhpennC9qB3iFlW8FZ_pZw",
             C = "02c020067db727d586bc3183aecf97fcb800c3f4cc4759f69c626c9db5d8f5b5d4",
         )
         val proof2 = Proof(
-            id = "DSAl9nvvyfva",
             amount = 8uL,
+            id = "DSAl9nvvyfva",
             secret = "TmS6Cv0YT5PU_5ATVKnukw",
             C = "02ac910bef28cbe5d7325415d5c263026f15f9b967a079ca9779ab6e5c2db133a7",
         )

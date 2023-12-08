@@ -5,8 +5,6 @@
  
 package me.tb.cashuclient
 
-import java.security.SecureRandom
-
 /**
  * Secret used to generate a token. This is the x in NUT-00, the bytes we'll use in the [hashToCurve] function
  * to generate key Y.
