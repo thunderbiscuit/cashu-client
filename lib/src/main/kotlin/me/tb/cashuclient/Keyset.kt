@@ -95,14 +95,19 @@ public class Keyset(keyset: Map<ULong, PublicKey>) {
     }
 }
 
+// TODO: Write tests for this type
 /**
  * A [KeysetId] is a unique identifier for a [Keyset].
  *
- * @param value The value of the [KeysetId], a base64 encoded String.
+ * @param value The value of the [KeysetId], a lowercase hexadecimal String.
  */
 @JvmInline
 public value class KeysetId(public val value: String) {
     init {
-        require(value.length == 12) { "Invalid length for keyset id: $value, must be 12 base64 characters (9 bytes)" }
+        require(value.length == 16) { "Invalid length for keyset id: $value, must be 16 characters" }
+    }
+
+    public fun versionByte(): String {
+        return value.take(2)
     }
 }

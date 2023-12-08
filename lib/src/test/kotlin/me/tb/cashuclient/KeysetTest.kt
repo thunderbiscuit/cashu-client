@@ -35,4 +35,10 @@ class KeysetTest {
         val keyset: Keyset = Keyset.fromJson(TEST_KEYSET)
         assertEquals<String>(expected = "I2yN+iRYfkzT", actual = keyset.keysetId.value)
     }
+
+    @Test
+    fun `Get version byte from keyset id`() {
+        val keyset: KeysetId = KeysetId("009a1f293253e41e")
+        assertEquals<String>(expected = "00", actual = keyset.versionByte())
+    }
 }
