@@ -9,12 +9,11 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_OUT
 val libraryVersion: String by project
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.8.10"
-    kotlin("plugin.serialization") version "1.8.10"
-    id("java-library")
-    id("maven-publish")
-    // id("org.jlleitschuh.gradle.ktlint") version "11.4.0"
-    id("org.jetbrains.dokka") version "1.8.10"
+    id("org.jetbrains.kotlin.jvm") version "1.9.10"
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.10"
+    id("org.gradle.java-library")
+    id("org.gradle.maven-publish")
+    id("org.jetbrains.dokka") version "1.9.10"
 }
 
 repositories {
@@ -60,7 +59,7 @@ testing {
         // Configure the built-in test suite
         val test by getting(JvmTestSuite::class) {
             // Use Kotlin Test test framework
-            useKotlinTest("1.8.10")
+            useKotlinTest("1.9.10")
         }
     }
 }
