@@ -138,12 +138,13 @@ public class Wallet(
      */
     public fun mint(amount: Satoshi): Unit = runBlocking(Dispatchers.IO) {
         val client = createClient()
+        val scopedActiveKeyset = activeKeyset ?: throw Exception("The wallet must have an active keyset for the mint when attempting a mint operation.")
 
         // Ask the mint for a bolt11 invoice
         val invoiceResponse: InvoiceResponse = requestFundingInvoice(amount, client)
 
         // Use it to build a mint request
-        val preMintBundle: PreMintBundle = PreMintBundle.create(amount.toULong(), activeKeyset!!.keysetId)
+        val preMintBundle: PreMintBundle = PreMintBundle.create(amount.toULong(), scopedActiveKeyset.keysetId)
         val mintingRequest: MintRequest = preMintBundle.buildMintRequest()
 
         val response = async {
@@ -263,7 +264,7 @@ public class Wallet(
             is SplitRequired.No  -> isSplitRequired.finalList
             is SplitRequired.Yes -> {
                 // If a split is required, we handle it here before moving on
-                val missingDenominations = split(
+                val missingDenominations = swap(
                     denominationToSplit = isSplitRequired.splitDenomination,
                     requiredAmount = isSplitRequired.requiredAmount
                 )
@@ -315,10 +316,12 @@ public class Wallet(
     // SPLIT
     // ---------------------------------------------------------------------------------------------
 
-    private fun split(denominationToSplit: ULong, requiredAmount: ULong): NewAvailableDenominations = runBlocking {
+    private fun swap(denominationToSplit: ULong, requiredAmount: ULong): NewAvailableDenominations = runBlocking {
         val client = createClient()
 
-        val preSplitRequestBundle = PreSwapBundle.create(denominationToSplit, requiredAmount, activeKeyset!!.keysetId)
+        val scopedActiveKeyset = activeKeyset ?: throw Exception("The wallet must have an active keyset for the mint when attempting a swap operation.")
+        
+        val preSplitRequestBundle = PreSwapBundle.create(denominationToSplit, requiredAmount, scopedActiveKeyset.keysetId)
         val splitRequest = preSplitRequestBundle.buildSwapRequest()
 
         val response = async {
