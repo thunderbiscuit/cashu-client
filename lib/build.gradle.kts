@@ -25,8 +25,8 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
 
     // Bitcoin
-    implementation("fr.acinq.bitcoin:bitcoin-kmp-jvm:0.12.0")
-    implementation("fr.acinq.secp256k1:secp256k1-kmp-jni-jvm-darwin:0.10.0")
+    implementation("fr.acinq.bitcoin:bitcoin-kmp-jvm:0.14.0")
+    implementation("fr.acinq.secp256k1:secp256k1-kmp-jni-jvm-darwin:0.11.0")
     implementation("fr.acinq.lightning:lightning-kmp-jvm:1.4.4")
 
     // Exposed
