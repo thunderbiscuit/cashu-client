@@ -13,4 +13,9 @@ package me.tb.cashuclient
  */
 public class Secret {
     public val value: ByteArray = randomBytes(32)
+
+    @OptIn(ExperimentalStdlibApi::class)
+    public fun toHex(): String {
+        return value.toHexString()
+    }
 }

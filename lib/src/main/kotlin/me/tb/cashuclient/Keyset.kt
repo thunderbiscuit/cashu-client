@@ -9,7 +9,6 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import fr.acinq.bitcoin.PublicKey
 import fr.acinq.bitcoin.crypto.Digest
-import java.util.Base64
 import java.util.SortedMap
 
 /**

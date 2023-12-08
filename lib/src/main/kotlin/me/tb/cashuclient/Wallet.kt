@@ -350,7 +350,6 @@ public class Wallet(
      * The wallet processes the mint's response by unblinding the signatures and adding the [Proof]s to its database. If
      * this processing is for a split request, the wallet also deletes the proof that was spent to create the split.
      */
-    @OptIn(ExperimentalEncodingApi::class)
     private fun processBlindedSignaturesResponse(requestBundle: PreRequestBundle, mintResponse: BlindedSignaturesResponse): Unit {
         require(requestBundle.blindingDataItems.size == mintResponse.promises.size) {
             "The number of outputs in the request and promises in the response must be the same."
@@ -364,12 +363,10 @@ public class Wallet(
             val rK: PublicKey = K.times(r)
             val unblindedKey: PublicKey = PublicKey.fromHex(promise.blindedKey).minus(rK)
 
-            // Note: The secret is initially a ByteArray and is converted to a Base64 string for storage in the database,
-            //       and the mints currently use the utf-8 bytes out of this string instead of the actual ByteArray.
             val proof: Proof = Proof(
                 amount = promise.amount,
                 id = scopedActiveKeyset.keysetId.value,
-                secret = Base64.encode(blindingData.secret.value),
+                secret = blindingData.secret.toHex(),
                 C = unblindedKey.toHex(),
                 script = null
             )
