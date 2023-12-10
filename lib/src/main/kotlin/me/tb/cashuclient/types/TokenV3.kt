@@ -3,12 +3,13 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the ./LICENSE file.
  */
  
-package me.tb.cashuclient
+package me.tb.cashuclient.types
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import me.tb.cashuclient.types.Proof
+import me.tb.cashuclient.PREFIX
+import me.tb.cashuclient.V3VERSION
 import java.util.Base64
 
 /**

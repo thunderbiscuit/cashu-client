@@ -44,6 +44,8 @@ import me.tb.cashuclient.mint.MintResponse
 import me.tb.cashuclient.swap.PreSwapBundle
 import me.tb.cashuclient.swap.SwapResponse
 import me.tb.cashuclient.types.BlindedSignaturesResponse
+import me.tb.cashuclient.types.Keyset
+import me.tb.cashuclient.types.KeysetId
 import me.tb.cashuclient.types.PreRequestBundle
 import me.tb.cashuclient.types.Proof
 import me.tb.cashuclient.types.SplitRequired
@@ -54,8 +56,6 @@ import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
-import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 
 public typealias NewAvailableDenominations = List<ULong>
 
@@ -64,29 +64,6 @@ public class Wallet(
     private val mintUrl: String
 ) {
     public val inactiveKeysets: MutableList<Keyset> = mutableListOf()
-
-    /**
-     * A factory function to create a client for communication with the mint. This pattern allows
-     * us to close the client after each request as there is no need to keep a client open for the
-     * lifetime of the wallet given that calls are expected to be infrequent.
-     */
-    private fun createClient(): HttpClient {
-        return HttpClient(OkHttp) {
-            install(ContentNegotiation) {
-                json(
-                    Json {
-                        prettyPrint = true
-                        isLenient = true
-                        ignoreUnknownKeys = true
-                    }
-                )
-            }
-            // TODO: Is this the logging level we want? Better configuration would probably be nice.
-            install(Logging) {
-                logger = Logger.DEFAULT
-            }
-        }
-    }
 
     /**
      * Rotate the active [Keyset] for the wallet.
@@ -404,4 +381,27 @@ public class Wallet(
     //     // 2. Do I have the correct denominations to build it?
     //     // 3. If not, call a split first to acquire the correct denominations
     // }
+
+    /**
+     * A factory function to create a client for communication with the mint. This pattern allows
+     * us to close the client after each request as there is no need to keep a client open for the
+     * lifetime of the wallet given that calls are expected to be infrequent.
+     */
+    private fun createClient(): HttpClient {
+        return HttpClient(OkHttp) {
+            install(ContentNegotiation) {
+                json(
+                    Json {
+                        prettyPrint = true
+                        isLenient = true
+                        ignoreUnknownKeys = true
+                    }
+                )
+            }
+            // TODO: Is this the logging level we want? Better configuration would probably be nice.
+            install(Logging) {
+                logger = Logger.DEFAULT
+            }
+        }
+    }
 }

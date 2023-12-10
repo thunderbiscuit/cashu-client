@@ -2,7 +2,6 @@ package me.tb.cashuclient.types
 
 import fr.acinq.bitcoin.PrivateKey
 import fr.acinq.bitcoin.PublicKey
-import me.tb.cashuclient.Secret
 import me.tb.cashuclient.hashToCurve
 import me.tb.cashuclient.randomBytes
 

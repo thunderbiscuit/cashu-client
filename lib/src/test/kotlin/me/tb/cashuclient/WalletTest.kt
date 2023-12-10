@@ -1,5 +1,7 @@
 package me.tb.cashuclient
 
+import me.tb.cashuclient.types.Keyset
+import me.tb.cashuclient.types.KeysetId
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

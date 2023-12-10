@@ -7,8 +7,8 @@ package me.tb.cashuclient.mint
 
 import fr.acinq.bitcoin.PrivateKey
 import fr.acinq.bitcoin.PublicKey
-import me.tb.cashuclient.KeysetId
-import me.tb.cashuclient.Secret
+import me.tb.cashuclient.types.KeysetId
+import me.tb.cashuclient.types.Secret
 import me.tb.cashuclient.decomposeAmount
 import me.tb.cashuclient.types.BlindedMessage
 import me.tb.cashuclient.types.BlindingData

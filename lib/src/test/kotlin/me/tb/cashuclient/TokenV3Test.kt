@@ -1,6 +1,8 @@
 package me.tb.cashuclient
 
 import me.tb.cashuclient.types.Proof
+import me.tb.cashuclient.types.TokenEntry
+import me.tb.cashuclient.types.TokenV3
 import java.lang.IllegalArgumentException
 import kotlin.test.Test
 import kotlin.test.assertEquals

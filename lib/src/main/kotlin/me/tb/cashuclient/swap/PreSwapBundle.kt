@@ -7,8 +7,8 @@ package me.tb.cashuclient.swap
 
 import fr.acinq.bitcoin.PrivateKey
 import fr.acinq.bitcoin.PublicKey
-import me.tb.cashuclient.KeysetId
-import me.tb.cashuclient.Secret
+import me.tb.cashuclient.types.KeysetId
+import me.tb.cashuclient.types.Secret
 import me.tb.cashuclient.db.DBProof
 import me.tb.cashuclient.db.DBSettings
 import me.tb.cashuclient.decomposeAmount
