@@ -44,6 +44,7 @@ import me.tb.cashuclient.mint.MintResponse
 import me.tb.cashuclient.swap.PreSwapBundle
 import me.tb.cashuclient.swap.SwapResponse
 import me.tb.cashuclient.types.BlindedSignaturesResponse
+import me.tb.cashuclient.types.EcashUnit
 import me.tb.cashuclient.types.Keyset
 import me.tb.cashuclient.types.KeysetId
 import me.tb.cashuclient.types.PreRequestBundle
@@ -59,9 +60,18 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 public typealias NewAvailableDenominations = List<ULong>
 
+/**
+ * A wallet handles all operations between a client and a mint. A single wallet is associated
+ * with a single mint and a single unit.
+ *
+ * @param activeKeyset The [Keyset] that is currently active for the mint.
+ * @param mintUrl The URL of the mint.
+ * @param unit The underlying unit used with the ecash tokens for this wallet.
+ */
 public class Wallet(
     public var activeKeyset: Keyset? = null,
-    private val mintUrl: String
+    private val mintUrl: String,
+    private val unit: EcashUnit,
 ) {
     public val inactiveKeysets: MutableList<Keyset> = mutableListOf()
 
