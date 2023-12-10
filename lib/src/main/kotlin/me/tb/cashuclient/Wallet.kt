@@ -91,7 +91,7 @@ public class Wallet(
     public fun getActiveKeyset(): Unit = runBlocking(Dispatchers.IO) {
         val keyset = async {
             val client = HttpClient(OkHttp)
-            val keysetJson = client.get("$mintUrl/keys").bodyAsText()
+            val keysetJson = client.get("$mintUrl$ACTIVE_KEYSET_PATH").bodyAsText()
             client.close()
             Keyset.fromJson(keysetJson)
         }
@@ -103,14 +103,14 @@ public class Wallet(
      * Query the mint for the [Keyset] associated with a given [KeysetId].
      */
     public fun getSpecificKeyset(keysetId: KeysetId): Keyset = runBlocking(Dispatchers.IO) {
-        val urlSafeKeysetId = base64ToBase64UrlSafe(keysetId.value)
-        val oldKeyset = async {
+        val keysetId: String = keysetId.value
+        val specificKeyset = async {
             val client = HttpClient(OkHttp)
-            val keysetJson = client.get("$mintUrl/keys/$urlSafeKeysetId").bodyAsText()
+            val keysetJson = client.get("$mintUrl$SPECIFIC_KEYSET_PATH$keysetId").bodyAsText()
             client.close()
             Keyset.fromJson(keysetJson)
         }
-        oldKeyset.await()
+        specificKeyset.await()
     }
 
     // ---------------------------------------------------------------------------------------------
