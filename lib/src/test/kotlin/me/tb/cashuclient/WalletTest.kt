@@ -134,8 +134,8 @@ class WalletTest {
         val smallKeyset = Keyset.fromJson(jsonString)
         val wallet = Wallet(activeKeyset = smallKeyset, mintUrl = "https://testnut.cashu.space")
 
-        val specificKeyset = wallet.getSpecificKeyset(KeysetId("iycFLq1XzB58"))
-        println("The specific keyset iycFLq1XzB58 is ${specificKeyset.sortedKeyset}")
+        val specificKeyset = wallet.getSpecificKeyset(KeysetId("009a1f293253e41e"))
+        println("The specific keyset 009a1f293253e41e is ${specificKeyset.sortedKeyset}")
     }
 
     // TODO: Fix this test: from what I understand the test completes before the BD has finished its work,

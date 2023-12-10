@@ -17,6 +17,7 @@ import java.util.Base64
 @Serializable
 public data class TokenV3(
     @SerialName("token") public val tokenEntries: List<TokenEntry> = listOf(),
+    public val unit: String? = null,
     public val memo: String? = null
 ) {
     public companion object {
