@@ -50,6 +50,7 @@ import me.tb.cashuclient.types.Keyset
 import me.tb.cashuclient.types.KeysetId
 import me.tb.cashuclient.types.PreRequestBundle
 import me.tb.cashuclient.types.Proof
+import me.tb.cashuclient.types.SpecificKeysetResponse
 import me.tb.cashuclient.types.SplitRequired
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -76,6 +77,10 @@ public class Wallet(
 ) {
     public val inactiveKeysets: MutableList<Keyset> = mutableListOf()
 
+    // ---------------------------------------------------------------------------------------------
+    // KEYSETS
+    // ---------------------------------------------------------------------------------------------
+
     /**
      * Rotate the active [Keyset] for the wallet.
      */
@@ -87,19 +92,19 @@ public class Wallet(
 
     // TODO: This method doesn't handle mint errors yet.
     /**
-     * Query the mint for the active [Keyset] and set it as the active keyset.*
+     * Query the mint for the active [Keyset] and set it as the active keyset.
      */
     public fun getActiveKeyset(): Unit = runBlocking(Dispatchers.IO) {
+        val client = createClient()
         val keyset = async {
-            val client = HttpClient(OkHttp)
-            val response = client.get("$mintUrl$ACTIVE_KEYSET_PATH").bodyAsText()
-            client.close()
-            val mintResponse = Json.decodeFromString(ActiveKeysetsResponse.serializer(), response)
+            val response = client.get("$mintUrl$ACTIVE_KEYSET_PATH")
+            val activeKeysetsResponse = response.body<ActiveKeysetsResponse>()
 
             // TODO: I'm not sure why there can be multiple active keysets at the same time. Open issue on specs repo.
-            mintResponse.keysets.first().toKeyset()
-        }
-        addKeyset(keyset.await())
+            activeKeysetsResponse.keysets.first().toKeyset()
+        }.await()
+        client.close()
+        addKeyset(keyset)
     }
 
     // TODO: This method doesn't handle mint errors yet.
@@ -108,16 +113,18 @@ public class Wallet(
      */
     public fun getSpecificKeyset(keysetId: KeysetId): Keyset = runBlocking(Dispatchers.IO) {
         val keysetIdHex: String = keysetId.value
+        val client = createClient()
         val specificKeyset = async {
-            val client = HttpClient(OkHttp)
-            val response = client.get("$mintUrl$SPECIFIC_KEYSET_PATH$keysetIdHex").bodyAsText()
-            client.close()
-            val mintResponse = Json.decodeFromString(ActiveKeysetsResponse.serializer(), response)
+            // val response = client.get("$mintUrl$SPECIFIC_KEYSET_PATH$keysetIdHex").bodyAsText()
+            // val mintResponse = Json.decodeFromString(ActiveKeysetsResponse.serializer(), response)
+            val response = client.get("$mintUrl$SPECIFIC_KEYSET_PATH$keysetIdHex")
+            val specificKeysetResponse = response.body<SpecificKeysetResponse>()
 
             // TODO: There should only be one keyset in the response it feels odd that the spec requires an array
-            mintResponse.keysets.first().toKeyset()
-        }
-        specificKeyset.await()
+            specificKeysetResponse.keysets.first().toKeyset()
+        }.await()
+        client.close()
+        specificKeyset
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -307,7 +314,7 @@ public class Wallet(
     }
 
     // ---------------------------------------------------------------------------------------------
-    // SPLIT
+    // SWAP
     // ---------------------------------------------------------------------------------------------
 
     private fun swap(denominationToSplit: ULong, requiredAmount: ULong): NewAvailableDenominations = runBlocking {
