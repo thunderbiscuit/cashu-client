@@ -11,6 +11,6 @@ import me.tb.cashuclient.types.Proof
 
 @Serializable
 public data class SwapRequest(
-    public val proofs: Proof,
+    public val inputs: List<Proof>,
     public val outputs: List<BlindedMessage>
 )

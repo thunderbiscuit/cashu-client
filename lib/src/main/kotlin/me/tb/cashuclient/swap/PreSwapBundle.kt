@@ -22,18 +22,18 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 
 /**
- * The data bundle Alice must create prior to communicating with the mint requesting a split. Once the mint sends a
+ * The data bundle Alice must create prior to communicating with the mint requesting a swap. Once the mint sends a
  * response [SwapResponse], the data from this [PreSwapBundle] object is combined with it to create valid tokens
  * (promises).
  *
- * @property proofToSplit The proof the wallet intends to send to the mint for splitting.
- * @property blindingDataItems The list of [PreSplitItem]s that will be used to create the [BlindedMessage]s sent to the
+ * @property proofsToSwap The list of [Proof]s the wallet intends to send to the mint for swapping.
+ * @property blindingDataItems The list of [PreSwapItem]s that will be used to create the [BlindedMessage]s sent to the
  * mint.
  * @property keysetId The [KeysetId] of the keyset the wallet expects will be signing the [BlindedMessage]s.
  */
 public class PreSwapBundle private constructor(
-    public val proofToSplit: Proof,
-    public override val blindingDataItems: List<PreSplitItem>,
+    public val proofsToSwap: List<Proof>,
+    public override val blindingDataItems: List<PreSwapItem>,
     public override val keysetId: KeysetId
 ) : PreRequestBundle {
     public fun buildSwapRequest(): SwapRequest {
@@ -46,29 +46,30 @@ public class PreSwapBundle private constructor(
         }
 
         return SwapRequest(
-            proofToSplit,
+            proofsToSwap,
             outputs
         )
     }
 
     public companion object {
+        // TODO: This currently only supports swapping a single denomination, but should support any number of them.
         /**
-         * Creates a [PreSwapBundle] from a denomination the user wishes to split and a target amount.
+         * Creates a [PreSwapBundle] from a denomination the user wishes to swap and a target amount.
          *
-         * @param denominationToSplit The denomination we wish to use to create the split.
+         * @param denominationToSwap The denomination we wish to use to create the swap.
          * @param requiredAmount The target amount.
          */
         public fun create(
-            denominationToSplit: ULong,
+            denominationToSwap: ULong,
             requiredAmount: ULong,
             keysetId: KeysetId,
         ): PreSwapBundle {
             val requiredDenominations: List<ULong> = decomposeAmount(requiredAmount)
-            val changeDenominations: List<ULong> = decomposeAmount(denominationToSplit - requiredAmount)
+            val changeDenominations: List<ULong> = decomposeAmount(denominationToSwap - requiredAmount)
             val requestDenominations = requiredDenominations + changeDenominations
 
-            val preSplitItems: List<PreSplitItem> = requestDenominations.map { amount ->
-                PreSplitItem.create(
+            val preSwapItem: List<PreSwapItem> = requestDenominations.map { amount ->
+                PreSwapItem.create(
                     amount = amount,
                 )
             }
@@ -77,7 +78,7 @@ public class PreSwapBundle private constructor(
             DBSettings.db
             val proof: Proof = transaction {
                 SchemaUtils.create(DBProof)
-                val proof: Proof? = DBProof.select { DBProof.amount eq denominationToSplit }.firstOrNull()?.let {
+                val proof: Proof? = DBProof.select { DBProof.amount eq denominationToSwap }.firstOrNull()?.let {
                     Proof(
                         amount = it[DBProof.amount],
                         id = it[DBProof.id],
@@ -86,10 +87,10 @@ public class PreSwapBundle private constructor(
                         script = it[DBProof.script]
                     )
                 }
-                proof ?: throw Exception("No proof found for denomination $denominationToSplit")
+                proof ?: throw Exception("No proof found for denomination $denominationToSwap")
             }
 
-            return PreSwapBundle(proof, preSplitItems, keysetId)
+            return PreSwapBundle(listOf(proof), preSwapItem, keysetId)
         }
     }
 }
@@ -99,7 +100,7 @@ public class PreSwapBundle private constructor(
  * with the mint's response to create [Proof]s.
  *
  * The amount and blindedSecret are required to build the [BlindedMessage]s that are sent to the mint and which the mint
- * sign. Upon return, the signed [BlindedSignature]s are unblinded using the blindingFactor and, combined with the
+ * sign. Upon return, the signed [me.tb.cashuclient.types.BlindedSignature]s are unblinded using the blindingFactor and, combined with the
  * secret, stored as [Proof]s in the database.
  *
  * @param amount The amount of the token.
@@ -107,16 +108,16 @@ public class PreSwapBundle private constructor(
  * @param blindedSecret The blinded secret B_ that is sent to the mint.
  * @param blindingFactor The blinding factor r, private key of the point R that is used to blind key Y.
  */
-public class PreSplitItem private constructor(
+public class PreSwapItem private constructor(
     public override val amount: ULong,
     public override val secret: Secret,
     public override val blindedSecret: PublicKey,
     public override val blindingFactor: PrivateKey
 ) : BlindingData {
     public companion object {
-        public fun create(amount: ULong): PreSplitItem {
+        public fun create(amount: ULong): PreSwapItem {
             val (secret, blindedSecret, blindingFactor) = createBlindingData()
-            return PreSplitItem(amount, secret, blindedSecret, blindingFactor)
+            return PreSwapItem(amount, secret, blindedSecret, blindingFactor)
         }
     }
 }

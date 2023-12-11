@@ -12,11 +12,11 @@ import me.tb.cashuclient.types.BlindedSignaturesResponse
 // TODO: The MintResponse and SwapResponse are the same class. We can clean this up.
 
 /**
- * This is the object returned by the split endpoint and consists of a list of blinded signatures.
+ * This is the object returned by the swap endpoint and consists of a list of blinded signatures.
  *
- * @param promises List of blinded signatures.
+ * @param signatures List of blinded signatures.
  */
 @Serializable
 public data class SwapResponse(
-    override val promises: List<BlindedSignature>
+    override val signatures: List<BlindedSignature>
 ) : BlindedSignaturesResponse

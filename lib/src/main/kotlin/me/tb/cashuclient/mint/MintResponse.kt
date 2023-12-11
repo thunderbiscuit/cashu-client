@@ -12,9 +12,9 @@ import me.tb.cashuclient.types.BlindedSignaturesResponse
 /**
  * This is the object returned by the mint endpoint and consists of a list of blinded signatures.
  *
- * @param promises List of blinded signatures.
+ * @param signatures List of blinded signatures.
  */
 @Serializable
 public data class MintResponse(
-    override val promises: List<BlindedSignature>
+    override val signatures: List<BlindedSignature>
 ) : BlindedSignaturesResponse

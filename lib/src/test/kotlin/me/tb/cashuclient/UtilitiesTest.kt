@@ -7,7 +7,7 @@ package me.tb.cashuclient
 
 import fr.acinq.bitcoin.PublicKey
 import fr.acinq.secp256k1.Hex
-import me.tb.cashuclient.types.SplitRequired
+import me.tb.cashuclient.types.SwapRequired
 import java.lang.IllegalArgumentException
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -78,7 +78,7 @@ class UtilitiesTest {
         val splitRequired = isSplitRequired(denominations, 87uL)
 
         assertEquals(
-            expected = SplitRequired.Yes(almostFinishedList = listOf(64uL), requiredAmount = 23uL, splitDenomination = 32uL),
+            expected = SwapRequired.Yes(almostFinishedList = listOf(64uL), requiredAmount = 23uL, swapDenomination = 32uL),
             actual = splitRequired
         )
     }

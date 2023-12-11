@@ -10,3 +10,4 @@ public const val V3VERSION: String = "A"
 
 public const val ACTIVE_KEYSET_PATH: String = "/v1/keys"
 public const val SPECIFIC_KEYSET_PATH: String = "/v1/keys/"
+public const val SWAP_ENDPOINT: String = "/v1/swap"

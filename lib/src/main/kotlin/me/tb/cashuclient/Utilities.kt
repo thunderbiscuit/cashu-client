@@ -7,7 +7,7 @@ package me.tb.cashuclient
 
 import fr.acinq.bitcoin.PublicKey
 import fr.acinq.bitcoin.crypto.Digest
-import me.tb.cashuclient.types.SplitRequired
+import me.tb.cashuclient.types.SwapRequired
 import java.security.SecureRandom
 import kotlin.math.pow
 
@@ -67,29 +67,29 @@ public fun base64ToBase64UrlSafe(base64: String): String {
 }
 
 /*
- * Given a list of available denominations and a target amount, return a [SplitRequired] that lets you know if you'll
- * need a split or not. If you don't need a split, the final list of denominations is returned. If you do need a split,
+ * Given a list of available denominations and a target amount, return a [SwapRequired] that lets you know if you'll
+ * need a swap or not. If you don't need a swap, the final list of denominations is returned. If you do need a swap,
  * a list of token amounts that almost add up to the target amount is returned, along with one more denomination you'll
- * need to split in order to hit the target amount.
+ * need to swap in order to hit the target amount.
  *
  * TODO: This function is where a lot of the gains could be made in terms of performance and resource utilization.
  *
  * @param availableDenominations The list of denominations available to the wallet.
  * @param targetAmount The target amount to reach.
  */
-public fun isSplitRequired(availableDenominations: List<ULong>, targetAmount: ULong): SplitRequired {
+public fun isSplitRequired(availableDenominations: List<ULong>, targetAmount: ULong): SwapRequired {
     val sortedDenominations = availableDenominations.sortedDescending()
     val selectedDenominations = mutableListOf<ULong>()
     var currentSum = 0uL
 
     for (denomination in sortedDenominations) {
         if (currentSum == targetAmount) {
-            return SplitRequired.No(selectedDenominations)
+            return SwapRequired.No(selectedDenominations)
         }
 
         if (currentSum + denomination > targetAmount) {
             val requiredAmount = targetAmount - currentSum
-            return SplitRequired.Yes(selectedDenominations, denomination, requiredAmount)
+            return SwapRequired.Yes(selectedDenominations, denomination, requiredAmount)
         } else {
             selectedDenominations.add(denomination)
             currentSum += denomination

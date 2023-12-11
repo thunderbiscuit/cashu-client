@@ -20,7 +20,6 @@ import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.contentType
@@ -51,7 +50,7 @@ import me.tb.cashuclient.types.KeysetId
 import me.tb.cashuclient.types.PreRequestBundle
 import me.tb.cashuclient.types.Proof
 import me.tb.cashuclient.types.SpecificKeysetResponse
-import me.tb.cashuclient.types.SplitRequired
+import me.tb.cashuclient.types.SwapRequired
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
@@ -256,17 +255,17 @@ public class Wallet(
             throw Exception("Not enough tokens to pay for the payment request.")
         }
 
-        val isSplitRequired: SplitRequired = isSplitRequired(
+        val isSplitRequired: SwapRequired = isSplitRequired(
             availableDenominations = availableDenominations,
             targetAmount = paymentAmount + fee.fee
         )
 
         val finalListOfDenominations = when (isSplitRequired) {
-            is SplitRequired.No  -> isSplitRequired.finalList
-            is SplitRequired.Yes -> {
-                // If a split is required, we handle it here before moving on
+            is SwapRequired.No  -> isSplitRequired.finalList
+            is SwapRequired.Yes -> {
+                // If a swap is required, we handle it here before moving on
                 val missingDenominations = swap(
-                    denominationToSplit = isSplitRequired.splitDenomination,
+                    denominationToSwap = isSplitRequired.swapDenomination,
                     requiredAmount = isSplitRequired.requiredAmount
                 )
 
@@ -317,27 +316,27 @@ public class Wallet(
     // Swap
     // ---------------------------------------------------------------------------------------------
 
-    private fun swap(denominationToSplit: ULong, requiredAmount: ULong): NewAvailableDenominations = runBlocking {
+    // TODO: We should be able to swap multiple denominations in one call.
+    private fun swap(denominationToSwap: ULong, requiredAmount: ULong): NewAvailableDenominations = runBlocking {
         val client = createClient()
-
         val scopedActiveKeyset = activeKeyset ?: throw Exception("The wallet must have an active keyset for the mint when attempting a swap operation.")
         
-        val preSplitRequestBundle = PreSwapBundle.create(denominationToSplit, requiredAmount, scopedActiveKeyset.keysetId)
-        val splitRequest = preSplitRequestBundle.buildSwapRequest()
+        val preSwapRequestBundle = PreSwapBundle.create(denominationToSwap, requiredAmount, scopedActiveKeyset.keysetId)
+        val swapRequest = preSwapRequestBundle.buildSwapRequest()
 
         val response = async {
-            client.post("$mintUrl/melt") {
+            client.post("$mintUrl$SWAP_ENDPOINT") {
                 method = HttpMethod.Post
                 contentType(ContentType.Application.Json)
-                setBody(splitRequest)
+                setBody(swapRequest)
             }
         }.await()
         client.close()
 
-        val splitResponse: SwapResponse = response.body()
+        val swapResponse: SwapResponse = response.body()
 
         // TODO: Process the mint response
-        processBlindedSignaturesResponse(preSplitRequestBundle, splitResponse)
+        processBlindedSignaturesResponse(preSwapRequestBundle, swapResponse)
 
         val newAvailableDenominations = decomposeAmount(requiredAmount)
         newAvailableDenominations
@@ -349,15 +348,15 @@ public class Wallet(
 
     /**
      * The wallet processes the mint's response by unblinding the signatures and adding the [Proof]s to its database. If
-     * this processing is for a split request, the wallet also deletes the proof that was spent to create the split.
+     * this processing is for a swap request, the wallet also deletes the proof that was spent to create the swap.
      */
     private fun processBlindedSignaturesResponse(requestBundle: PreRequestBundle, mintResponse: BlindedSignaturesResponse): Unit {
-        require(requestBundle.blindingDataItems.size == mintResponse.promises.size) {
+        require(requestBundle.blindingDataItems.size == mintResponse.signatures.size) {
             "The number of outputs in the request and promises in the response must be the same."
         }
         val scopedActiveKeyset = activeKeyset ?: throw Exception("The wallet must have an active keyset for the mint.")
 
-        (requestBundle.blindingDataItems zip mintResponse.promises).forEach { (blindingData, promise) ->
+        (requestBundle.blindingDataItems zip mintResponse.signatures).forEach { (blindingData, promise) ->
             // Unblinding is done like so: C = C_ - rK
             val r: PrivateKey = blindingData.blindingFactor
             val K: PublicKey = scopedActiveKeyset.getKey(blindingData.amount)
@@ -386,9 +385,9 @@ public class Wallet(
         }
 
         if (requestBundle is PreSwapBundle) {
-            transaction(DBSettings.db) {
-                SchemaUtils.create(DBProof)
-                val secretToDelete = requestBundle.proofToSplit.secret
+            SchemaUtils.create(DBProof)
+            requestBundle.proofsToSwap.forEach { proof ->
+                val secretToDelete = proof.secret
                 DBProof.deleteWhere { secret eq secretToDelete }
             }
         }
@@ -401,7 +400,7 @@ public class Wallet(
     // public fun buildPaymentToken(totalValue: ULong): TokenV3 {
     //     // 1. Do I have the enough in the wallet to build this token?
     //     // 2. Do I have the correct denominations to build it?
-    //     // 3. If not, call a split first to acquire the correct denominations
+    //     // 3. If not, call a swap first to acquire the correct denominations
     // }
 
     // ---------------------------------------------------------------------------------------------
