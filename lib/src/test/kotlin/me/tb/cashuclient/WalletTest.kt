@@ -99,7 +99,6 @@ class WalletTest {
         val jsonString = """{"1":"03142715675faf8da1ecc4d51e0b9e539fa0d52fdd96ed60dbe99adb15d6b05ad9"}"""
         val smallKeyset = Keyset.fromJson(jsonString)
         val wallet = Wallet(activeKeyset = smallKeyset, mintUrl = "https://testnut.cashu.space", unit = EcashUnit.SATOSHI)
-        println("The current wallet keyset is ${wallet.activeKeyset}")
 
         // At this point the wallet keyset should not be the same as the smallKeyset
         assertEquals<Keyset>(

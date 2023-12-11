@@ -120,8 +120,6 @@ public data class KeysetJson(
         val keysetOnly: Map<ULong, PublicKey> = keys.map { (tokenValue, publicKeyHex) ->
             tokenValue to PublicKey.fromHex(publicKeyHex)
         }.toMap()
-        // println("keysetOnly: $keysetOnly")
-        println("Newly created keyset id should be: $id")
         val keyset: Keyset = Keyset(keysetOnly)
 
         require(keyset.keysetId.value == id) { "Keyset id mismatch: ${keyset.keysetId.value} != $id" }
