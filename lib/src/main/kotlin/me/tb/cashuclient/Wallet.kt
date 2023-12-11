@@ -78,7 +78,7 @@ public class Wallet(
     public val inactiveKeysets: MutableList<Keyset> = mutableListOf()
 
     // ---------------------------------------------------------------------------------------------
-    // KEYSETS
+    // Keysets
     // ---------------------------------------------------------------------------------------------
 
     /**
@@ -128,7 +128,7 @@ public class Wallet(
     }
 
     // ---------------------------------------------------------------------------------------------
-    // MINT
+    // Mint
     // ---------------------------------------------------------------------------------------------
 
     /**
@@ -202,7 +202,7 @@ public class Wallet(
     }
 
     // ---------------------------------------------------------------------------------------------
-    // MELT
+    // Melt
     // ---------------------------------------------------------------------------------------------
 
     /**
@@ -314,7 +314,7 @@ public class Wallet(
     }
 
     // ---------------------------------------------------------------------------------------------
-    // SWAP
+    // Swap
     // ---------------------------------------------------------------------------------------------
 
     private fun swap(denominationToSplit: ULong, requiredAmount: ULong): NewAvailableDenominations = runBlocking {
@@ -372,8 +372,6 @@ public class Wallet(
                 script = null
             )
 
-            println("Adding proof to database: $proof")
-
             transaction(DBSettings.db) {
                 SchemaUtils.create(DBProof)
 
@@ -405,6 +403,10 @@ public class Wallet(
     //     // 2. Do I have the correct denominations to build it?
     //     // 3. If not, call a split first to acquire the correct denominations
     // }
+
+    // ---------------------------------------------------------------------------------------------
+    // Utilities
+    // ---------------------------------------------------------------------------------------------
 
     /**
      * A factory function to create a client for communication with the mint. This pattern allows
