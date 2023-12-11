@@ -43,6 +43,7 @@ import me.tb.cashuclient.mint.MintRequest
 import me.tb.cashuclient.mint.MintResponse
 import me.tb.cashuclient.swap.PreSwapBundle
 import me.tb.cashuclient.swap.SwapResponse
+import me.tb.cashuclient.types.ActiveKeysetsResponse
 import me.tb.cashuclient.types.BlindedSignaturesResponse
 import me.tb.cashuclient.types.EcashUnit
 import me.tb.cashuclient.types.Keyset
@@ -91,9 +92,12 @@ public class Wallet(
     public fun getActiveKeyset(): Unit = runBlocking(Dispatchers.IO) {
         val keyset = async {
             val client = HttpClient(OkHttp)
-            val keysetJson = client.get("$mintUrl$ACTIVE_KEYSET_PATH").bodyAsText()
+            val response = client.get("$mintUrl$ACTIVE_KEYSET_PATH").bodyAsText()
             client.close()
-            Keyset.fromJson(keysetJson)
+            val mintResponse = Json.decodeFromString(ActiveKeysetsResponse.serializer(), response)
+
+            // TODO: I'm not sure why there can be multiple active keysets at the same time. Open issue on specs repo.
+            mintResponse.keysets.first().toKeyset()
         }
         addKeyset(keyset.await())
     }
@@ -103,12 +107,15 @@ public class Wallet(
      * Query the mint for the [Keyset] associated with a given [KeysetId].
      */
     public fun getSpecificKeyset(keysetId: KeysetId): Keyset = runBlocking(Dispatchers.IO) {
-        val keysetId: String = keysetId.value
+        val keysetIdHex: String = keysetId.value
         val specificKeyset = async {
             val client = HttpClient(OkHttp)
-            val keysetJson = client.get("$mintUrl$SPECIFIC_KEYSET_PATH$keysetId").bodyAsText()
+            val response = client.get("$mintUrl$SPECIFIC_KEYSET_PATH$keysetIdHex").bodyAsText()
             client.close()
-            Keyset.fromJson(keysetJson)
+            val mintResponse = Json.decodeFromString(ActiveKeysetsResponse.serializer(), response)
+
+            // TODO: There should only be one keyset in the response it feels odd that the spec requires an array
+            mintResponse.keysets.first().toKeyset()
         }
         specificKeyset.await()
     }

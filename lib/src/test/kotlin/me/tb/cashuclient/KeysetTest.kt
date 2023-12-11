@@ -35,7 +35,7 @@ class KeysetTest {
     @Test
     fun `Derive keyset id`() {
         val keyset: Keyset = Keyset.fromJson(TEST_KEYSET)
-        assertEquals<String>(expected = "00236c8dfa24587e", actual = keyset.keysetId.value)
+        assertEquals<String>(expected = "000f01df73ea149a", actual = keyset.keysetId.value)
     }
 
     @Test

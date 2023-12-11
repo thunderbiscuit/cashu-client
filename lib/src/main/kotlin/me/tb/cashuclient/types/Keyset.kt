@@ -9,6 +9,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import fr.acinq.bitcoin.PublicKey
 import fr.acinq.bitcoin.crypto.Digest
+import kotlinx.serialization.Serializable
 import java.util.SortedMap
 
 /**
@@ -17,7 +18,9 @@ import java.util.SortedMap
  *
  * @param keyset A map of token values to public keys.
  */
-public class Keyset(keyset: Map<ULong, PublicKey>) {
+public class Keyset(
+    keyset: Map<ULong, PublicKey>,
+) {
     init {
         keyset.forEach { (value, publicKey) ->
             require(publicKey.isValid()) { "Invalid public key $publicKey (hex: ${publicKey.toHex()}) for value $value." }
@@ -25,24 +28,23 @@ public class Keyset(keyset: Map<ULong, PublicKey>) {
     }
 
     public val sortedKeyset: SortedMap<ULong, PublicKey> = keyset.toSortedMap()
-    public val keysetId: KeysetId by lazy {
-        deriveKeysetId()
-    }
+    public val keysetId: KeysetId by lazy { deriveKeysetId() }
+    public val unit: EcashUnit = EcashUnit.SATOSHI
 
     /**
      * Derive the [KeysetId] for a given [Keyset]. Currently only derives 0x00 version keyset ids.
      */
     @OptIn(ExperimentalStdlibApi::class)
     private fun deriveKeysetId(): KeysetId {
-        val allKeysConcatenated: String = buildString {
-            sortedKeyset.values.forEach { publicKey ->
-                append(publicKey)
-            }
+        // Add all compressed public keys together
+        val allKeysConcatenated = sortedKeyset.values.fold(ByteArray(0)) { acc, publicKey ->
+            acc + publicKey.value.toByteArray()
         }
+
         val versionPrefix = byteArrayOf(0x00)
         val bytes: ByteArray = Digest
             .sha256()
-            .hash(allKeysConcatenated.toByteArray(Charsets.UTF_8))
+            .hash(allKeysConcatenated)
             .sliceArray(0..<7)
         val keysetId = versionPrefix + bytes
 
@@ -58,6 +60,16 @@ public class Keyset(keyset: Map<ULong, PublicKey>) {
      */
     public fun getKey(tokenValue: ULong): PublicKey {
         return sortedKeyset[tokenValue] ?: throw Exception("No key found in keyset for token value $tokenValue")
+    }
+
+    public fun toKeysetJson(): KeysetJson {
+        val keys: Map<ULong, String> = sortedKeyset.map { (tokenValue, publicKey) ->
+            tokenValue to publicKey.toHex()
+        }.toMap()
+        val unit: String = "sat"
+        val id: String = keysetId.value
+
+        return KeysetJson(id, unit, keys)
     }
 
     /**
@@ -94,6 +106,27 @@ public class Keyset(keyset: Map<ULong, PublicKey>) {
 
             return Keyset(keyset)
         }
+    }
+}
+
+// TODO: This class should be removed in favour of a proper serialization of the Keyset type.
+@Serializable
+public data class KeysetJson(
+    public val id: String,
+    public val unit: String = "sat",
+    public val keys: Map<ULong, String>,
+) {
+    public fun toKeyset(): Keyset {
+        val keysetOnly: Map<ULong, PublicKey> = keys.map { (tokenValue, publicKeyHex) ->
+            tokenValue to PublicKey.fromHex(publicKeyHex)
+        }.toMap()
+        // println("keysetOnly: $keysetOnly")
+        println("Newly created keyset id should be: $id")
+        val keyset: Keyset = Keyset(keysetOnly)
+
+        require(keyset.keysetId.value == id) { "Keyset id mismatch: ${keyset.keysetId.value} != $id" }
+
+        return keyset
     }
 }
 

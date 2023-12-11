@@ -1,5 +1,11 @@
+/*
+ * Copyright 2023 thunderbiscuit and contributors.
+ * Use of this source code is governed by the Apache 2.0 license that can be found in the ./LICENSE file.
+ */
+
 package me.tb.cashuclient
 
+import me.tb.cashuclient.types.EcashUnit
 import me.tb.cashuclient.types.Keyset
 import me.tb.cashuclient.types.KeysetId
 import kotlin.test.Test
@@ -92,9 +98,7 @@ class WalletTest {
     fun `Wallet successfully updates active keyset from mint after requesting it`() {
         val jsonString = """{"1":"03142715675faf8da1ecc4d51e0b9e539fa0d52fdd96ed60dbe99adb15d6b05ad9"}"""
         val smallKeyset = Keyset.fromJson(jsonString)
-        val wallet = Wallet(activeKeyset = smallKeyset, mintUrl = "https://testnut.cashu.space")
-        // val wallet = Wallet(activeKeyset = smallKeyset, mintUrl = "https://mutinynet-cashu.thesimplekid.space")
-        // val wallet = Wallet(activeKeyset = smallKeyset, mintUrl = "https://8333.space:3338")
+        val wallet = Wallet(activeKeyset = smallKeyset, mintUrl = "https://testnut.cashu.space", unit = EcashUnit.SATOSHI)
         println("The current wallet keyset is ${wallet.activeKeyset}")
 
         // At this point the wallet keyset should not be the same as the smallKeyset
@@ -105,7 +109,6 @@ class WalletTest {
 
         // Now we request the active keyset from the mint
         wallet.getActiveKeyset()
-        println("The new wallet keyset is ${wallet.activeKeyset}")
 
         // At this point the wallet keyset should not be the same anymore
         assertEquals<Boolean>(
@@ -118,11 +121,10 @@ class WalletTest {
     fun `Wallet adds old keyset to list of inactive keysets`() {
         val jsonString = """{"1":"03142715675faf8da1ecc4d51e0b9e539fa0d52fdd96ed60dbe99adb15d6b05ad9"}"""
         val smallKeyset = Keyset.fromJson(jsonString)
-        val wallet = Wallet(activeKeyset = smallKeyset, mintUrl = "https://testnut.cashu.space")
+        val wallet = Wallet(activeKeyset = smallKeyset, mintUrl = "https://testnut.cashu.space", unit = EcashUnit.SATOSHI)
 
         // Now we request the active keyset from the mint
         wallet.getActiveKeyset()
-        println("The new wallet keyset ID is ${wallet.activeKeyset!!.keysetId}")
 
         assertEquals<Keyset>(
             expected = smallKeyset,
@@ -134,10 +136,18 @@ class WalletTest {
     fun `Wallet can request specific keyset from mint`() {
         val jsonString = """{"1":"03142715675faf8da1ecc4d51e0b9e539fa0d52fdd96ed60dbe99adb15d6b05ad9"}"""
         val smallKeyset = Keyset.fromJson(jsonString)
-        val wallet = Wallet(activeKeyset = smallKeyset, mintUrl = "https://testnut.cashu.space")
+        val wallet = Wallet(
+            activeKeyset = smallKeyset,
+            mintUrl = "https://testnut.cashu.space",
+            unit = EcashUnit.SATOSHI
+        )
 
         val specificKeyset = wallet.getSpecificKeyset(KeysetId("009a1f293253e41e"))
-        println("The specific keyset 009a1f293253e41e is ${specificKeyset.sortedKeyset}")
+
+        assertEquals<String>(
+            expected = "009a1f293253e41e",
+            actual = specificKeyset.keysetId.value
+        )
     }
 
     // TODO: Fix this test: from what I understand the test completes before the BD has finished its work,
