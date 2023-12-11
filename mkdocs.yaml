@@ -38,12 +38,11 @@ plugins:
 
 # page tree
 nav:
-  - Readme: "index.md"
-  - Documentation: 
-    - Overview: "overview.md"
+  - Getting Started:
+    - About: "index.md"
     - Install: "install.md"
-    - Cashu: "cashu.md"
-    - Architecture: "architecture.md"
+  - Architecture: 
+    - Cashu Protocol: "cashu.md"
     - Mint: "mint.md"
-    - Split: "split.md"
+    - Swap: "swap.md"
     - Melt: "melt.md"
