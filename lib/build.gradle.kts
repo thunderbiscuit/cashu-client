@@ -89,7 +89,7 @@ publishing {
     publications {
         create<MavenPublication>("maven") {
             groupId = "me.tb"
-            artifactId = "cashuclient"
+            artifactId = "cashu-client"
             version = libraryVersion
 
             from(components["java"])
@@ -100,7 +100,7 @@ publishing {
 tasks.withType<org.jetbrains.dokka.gradle.DokkaTask>().configureEach {
     dokkaSourceSets {
         named("main") {
-            moduleName.set("cashuclient")
+            moduleName.set("cashu-client")
             moduleVersion.set(libraryVersion)
             // includes.from("Module.md")
             // samples.from("src/test/kotlin/me/tb/Samples.kt")
