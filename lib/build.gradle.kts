@@ -27,7 +27,7 @@ dependencies {
     // Bitcoin
     implementation("fr.acinq.bitcoin:bitcoin-kmp-jvm:0.14.0")
     implementation("fr.acinq.secp256k1:secp256k1-kmp-jni-jvm-darwin:0.11.0")
-    implementation("fr.acinq.lightning:lightning-kmp-jvm:1.4.4")
+    implementation("fr.acinq.lightning:lightning-kmp:1.5.12")
 
     // Exposed
     implementation("org.jetbrains.exposed:exposed-core:0.40.1")
