@@ -6,5 +6,9 @@
  package me.tb.cashuclient.types
 
 public enum class EcashUnit {
-    SATOSHI,
+    SAT;
+
+    override fun toString(): String {
+        return this.name.lowercase()
+    }
 }
