@@ -5,9 +5,12 @@
 
 package me.tb.cashuclient
 
+import fr.acinq.bitcoin.Satoshi
+import me.tb.cashuclient.mint.MintQuoteData
 import me.tb.cashuclient.types.EcashUnit
 import me.tb.cashuclient.types.Keyset
 import me.tb.cashuclient.types.KeysetId
+import me.tb.cashuclient.types.PaymentMethod
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -98,7 +101,7 @@ class WalletTest {
     fun `Wallet successfully updates active keyset from mint after requesting it`() {
         val jsonString = """{"1":"03142715675faf8da1ecc4d51e0b9e539fa0d52fdd96ed60dbe99adb15d6b05ad9"}"""
         val smallKeyset = Keyset.fromJson(jsonString)
-        val wallet = Wallet(activeKeyset = smallKeyset, mintUrl = "https://testnut.cashu.space", unit = EcashUnit.SATOSHI)
+        val wallet = Wallet(activeKeyset = smallKeyset, mintUrl = "https://testnut.cashu.space", unit = EcashUnit.SAT)
 
         // At this point the wallet keyset should not be the same as the smallKeyset
         assertEquals<Keyset>(
@@ -120,7 +123,7 @@ class WalletTest {
     fun `Wallet adds old keyset to list of inactive keysets`() {
         val jsonString = """{"1":"03142715675faf8da1ecc4d51e0b9e539fa0d52fdd96ed60dbe99adb15d6b05ad9"}"""
         val smallKeyset = Keyset.fromJson(jsonString)
-        val wallet = Wallet(activeKeyset = smallKeyset, mintUrl = "https://testnut.cashu.space", unit = EcashUnit.SATOSHI)
+        val wallet = Wallet(activeKeyset = smallKeyset, mintUrl = "https://testnut.cashu.space", unit = EcashUnit.SAT)
 
         // Now we request the active keyset from the mint
         wallet.getActiveKeyset()
@@ -138,7 +141,7 @@ class WalletTest {
         val wallet = Wallet(
             activeKeyset = smallKeyset,
             mintUrl = "https://testnut.cashu.space",
-            unit = EcashUnit.SATOSHI
+            unit = EcashUnit.SAT
         )
 
         val specificKeyset = wallet.getSpecificKeyset(KeysetId("009a1f293253e41e"))
@@ -149,6 +152,16 @@ class WalletTest {
         )
     }
 
+    @Test
+    fun `Wallet can request a mint quote`() {
+        val wallet: Wallet = Wallet(mintUrl = "https://8333.space:3338", unit = EcashUnit.SAT)
+        // val wallet: Wallet = Wallet(mintUrl = "https://legend.lnbits.com/cashu/api", unit = EcashUnit.SAT)
+        // val wallet: Wallet = Wallet(mintUrl = "https://mutinynet.moksha.cash:3338", unit = EcashUnit.SAT)
+        // val wallet = Wallet(mintUrl = "https://testnut.cashu.space", unit = EcashUnit.SAT)
+        val quote = wallet.requestMintQuote(Satoshi(100), paymentMethod = PaymentMethod.BOLT11)
+
+        println(quote)
+    }
     // TODO: Fix this test: from what I understand the test completes before the BD has finished its work,
     //       so we're getting a "kotlinx.coroutines.JobCancellationException: Parent job is Completed" exception.
     // @Test

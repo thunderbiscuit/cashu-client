@@ -29,7 +29,7 @@ public class Keyset(
 
     public val sortedKeyset: SortedMap<ULong, PublicKey> = keyset.toSortedMap()
     public val keysetId: KeysetId by lazy { deriveKeysetId() }
-    public val unit: EcashUnit = EcashUnit.SATOSHI
+    public val unit: EcashUnit = EcashUnit.SAT
 
     /**
      * Derive the [KeysetId] for a given [Keyset]. Currently only derives 0x00 version keyset ids.

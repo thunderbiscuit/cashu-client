@@ -20,6 +20,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.contentType
@@ -38,6 +39,9 @@ import me.tb.cashuclient.mint.InvoiceResponse
 import me.tb.cashuclient.melt.MeltRequest
 import me.tb.cashuclient.melt.MeltResponse
 import me.tb.cashuclient.melt.PreMeltBundle
+import me.tb.cashuclient.mint.MintQuoteData
+import me.tb.cashuclient.mint.MintQuoteRequest
+import me.tb.cashuclient.mint.MintQuoteResponse
 import me.tb.cashuclient.mint.MintRequest
 import me.tb.cashuclient.mint.MintResponse
 import me.tb.cashuclient.swap.PreSwapBundle
@@ -47,6 +51,7 @@ import me.tb.cashuclient.types.BlindedSignaturesResponse
 import me.tb.cashuclient.types.EcashUnit
 import me.tb.cashuclient.types.Keyset
 import me.tb.cashuclient.types.KeysetId
+import me.tb.cashuclient.types.PaymentMethod
 import me.tb.cashuclient.types.PreRequestBundle
 import me.tb.cashuclient.types.Proof
 import me.tb.cashuclient.types.SpecificKeysetResponse
@@ -96,7 +101,7 @@ public class Wallet(
     public fun getActiveKeyset(): Unit = runBlocking(Dispatchers.IO) {
         val client = createClient()
         val keyset = async {
-            val response = client.get("$mintUrl$ACTIVE_KEYSET_PATH")
+            val response = client.get("$mintUrl$ACTIVE_KEYSET_ENDPOINT")
             val activeKeysetsResponse = response.body<ActiveKeysetsResponse>()
 
             // TODO: I'm not sure why there can be multiple active keysets at the same time. Open issue on specs repo.
@@ -116,8 +121,8 @@ public class Wallet(
         val specificKeyset = async {
             // val response = client.get("$mintUrl$SPECIFIC_KEYSET_PATH$keysetIdHex").bodyAsText()
             // val mintResponse = Json.decodeFromString(ActiveKeysetsResponse.serializer(), response)
-            val response = client.get("$mintUrl$SPECIFIC_KEYSET_PATH$keysetIdHex")
-            val specificKeysetResponse = response.body<SpecificKeysetResponse>()
+            val response = client.get("$mintUrl$SPECIFIC_KEYSET_ENDPOINT$keysetIdHex")
+            val specificKeysetResponse: SpecificKeysetResponse = response.body<SpecificKeysetResponse>()
 
             // TODO: There should only be one keyset in the response it feels odd that the spec requires an array
             specificKeysetResponse.keysets.first().toKeyset()
@@ -130,34 +135,28 @@ public class Wallet(
     // Mint
     // ---------------------------------------------------------------------------------------------
 
-    /**
-     * Request newly minted tokens from the mint. The mint returns a list of [me.tb.cashuclient.types.BlindedSignature]s,
-     * which the client must unblind and add to its database.
-     *
-     * @param amount The amount of token we want to mint.
-     */
-    public fun mint(amount: Satoshi): Unit = runBlocking(Dispatchers.IO) {
+    // TODO: This method doesn't handle mint errors yet.
+    // Note: We don't persist the quote in the database. The client must pay the quote and call the mint again while
+    //       keeping the quote in memory, otherwise simply request a new quote. This is not optimal because a client
+    //       might pay an invoice and then get wiped out before calling the mint again, but if it doesn't know the quote
+    //       id then it will not be able to prove to the mint that it paid the invoice.
+    public fun requestMintQuote(amount: Satoshi, paymentMethod: PaymentMethod): MintQuoteData = runBlocking(Dispatchers.IO) {
         val client = createClient()
-        val scopedActiveKeyset = activeKeyset ?: throw Exception("The wallet must have an active keyset for the mint when attempting a mint operation.")
-
-        // Ask the mint for a bolt11 invoice
-        val invoiceResponse: InvoiceResponse = requestFundingInvoice(amount, client)
-
-        // Use it to build a mint request
-        val preMintBundle: PreMintBundle = PreMintBundle.create(amount.toULong(), scopedActiveKeyset.keysetId)
-        val mintingRequest: MintRequest = preMintBundle.buildMintRequest()
+        val mintQuoteRequest = MintQuoteRequest(amount.sat.toULong(), unit.toString())
 
         val response = async {
-            client.post("$mintUrl/mint") {
+            client.post("$mintUrl$MINT_QUOTE_ENDPOINT$paymentMethod") {
                 method = HttpMethod.Post
-                url {
-                    parameters.append("hash", invoiceResponse.hash)
-                }
                 contentType(ContentType.Application.Json)
-                setBody(mintingRequest)
+                setBody(mintQuoteRequest)
             }
         }.await()
         client.close()
+        println("Response from mint: ${response.bodyAsText()}")
+        val mintQuoteResponse: MintQuoteResponse = response.body<MintQuoteResponse>()
+
+        MintQuoteData.fromMintQuoteResponse(amount, mintQuoteResponse)
+    }
 
         val mintResponse: MintResponse = response.body()
 
@@ -173,32 +172,32 @@ public class Wallet(
      * Initiate minting request with the mint for a given amount. The mint will return a bolt11 invoice the client must pay
      * in order to proceed to the next step and request newly minted tokens.
      */
-    private fun requestFundingInvoice(amount: Satoshi, client: HttpClient): InvoiceResponse = runBlocking(Dispatchers.IO) {
-        // Part 1: call the mint and get a bolt11 invoice
-        val response = async {
-            client.request("$mintUrl/mint") {
-                method = HttpMethod.Get
-                url { parameters.append("amount", amount.sat.toString()) }
-            }
-        }.await()
-        client.close()
-
-        val fundingInvoiceResponse: InvoiceResponse = response.body()
-
-        // Part 2: add information to database
-        transaction(DBSettings.db) {
-            SchemaUtils.create(DBBolt11Payment)
-
-            // TODO: Think of what to do if the bolt11 invoice is already in the database
-            DBBolt11Payment.insert {
-                it[pr] = fundingInvoiceResponse.pr
-                it[hash] = fundingInvoiceResponse.hash
-                it[value] = amount.sat.toULong()
-            }
-        }
-
-        fundingInvoiceResponse
-    }
+    // private fun requestFundingInvoice(amount: Satoshi, client: HttpClient): InvoiceResponse = runBlocking(Dispatchers.IO) {
+    //     // Part 1: call the mint and get a bolt11 invoice
+    //     val response = async {
+    //         client.request("$mintUrl/mint") {
+    //             method = HttpMethod.Get
+    //             url { parameters.append("amount", amount.sat.toString()) }
+    //         }
+    //     }.await()
+    //     client.close()
+    //
+    //     val fundingInvoiceResponse: InvoiceResponse = response.body()
+    //
+    //     // Part 2: add information to database
+    //     transaction(DBSettings.db) {
+    //         SchemaUtils.create(DBBolt11Payment)
+    //
+    //         // TODO: Think of what to do if the bolt11 invoice is already in the database
+    //         DBBolt11Payment.insert {
+    //             it[pr] = fundingInvoiceResponse.pr
+    //             it[hash] = fundingInvoiceResponse.hash
+    //             it[value] = amount.sat.toULong()
+    //         }
+    //     }
+    //
+    //     fundingInvoiceResponse
+    // }
 
     // ---------------------------------------------------------------------------------------------
     // Melt
@@ -232,74 +231,75 @@ public class Wallet(
      *
      * @param paymentRequest The lightning payment request.
      */
-    private fun melt(paymentRequest: PaymentRequest): Unit = runBlocking(Dispatchers.IO) {
-        val client = createClient()
-
-        val fee: CheckFeesResponse = checkFees(paymentRequest, client)
-        // TODO: Look into payment requests and make sure they always have an amount in the case of Cashu. I don't think
-        //       they do.
-        val paymentAmount: ULong = paymentRequest
-            .amount
-            ?.truncateToSatoshi()
-            ?.toULong() ?: throw Exception("Payment request does not have an amount.")
-
-        val availableDenominations: List<ULong> = transaction(DBSettings.db) {
-            SchemaUtils.create(DBProof)
-            DBProof
-                .selectAll()
-                .map { it[DBProof.amount] }
-        }
-        val totalBalance = availableDenominations.sum()
-
-        if (totalBalance < paymentAmount + fee.fee) {
-            throw Exception("Not enough tokens to pay for the payment request.")
-        }
-
-        val isSplitRequired: SwapRequired = isSplitRequired(
-            availableDenominations = availableDenominations,
-            targetAmount = paymentAmount + fee.fee
-        )
-
-        val finalListOfDenominations = when (isSplitRequired) {
-            is SwapRequired.No  -> isSplitRequired.finalList
-            is SwapRequired.Yes -> {
-                // If a swap is required, we handle it here before moving on
-                val missingDenominations = swap(
-                    denominationToSwap = isSplitRequired.swapDenomination,
-                    requiredAmount = isSplitRequired.requiredAmount
-                )
-
-                isSplitRequired.almostFinishedList + missingDenominations
-            }
-        }
-
-        require(finalListOfDenominations.sum() == paymentAmount + fee.fee) {
-            "The sum of tokens to spend must be equal to the sum of the required tokens."
-        }
-
-        val preMeltBundle: PreMeltBundle = PreMeltBundle.create(finalListOfDenominations, paymentRequest)
-        val meltRequest: MeltRequest = preMeltBundle.buildMeltRequest()
-
-        val response = async {
-            client.post("$mintUrl/melt") {
-                method = HttpMethod.Post
-                contentType(ContentType.Application.Json)
-                setBody(meltRequest)
-            }
-        }.await()
-        client.close()
-
-        val responseString: String = response.body<String>()
-        println("Response from mint: $responseString")
-        val meltResponse: MeltResponse = response.body<MeltResponse>()
-        println("Melt response: $meltResponse")
-
-        if (meltResponse.paid) {
-            processMeltResponse(preMeltBundle)
-        } else {
-            throw Exception("The payment request was not paid.")
-        }
-    }
+    // private fun melt(paymentRequest: String): Unit = runBlocking(Dispatchers.IO) {
+    // // private fun melt(paymentRequest: PaymentRequest): Unit = runBlocking(Dispatchers.IO) {
+    //     val client = createClient()
+    //
+    //     val fee: CheckFeesResponse = checkFees(paymentRequest, client)
+    //     // TODO: Look into payment requests and make sure they always have an amount in the case of Cashu. I don't think
+    //     //       they do.
+    //     val paymentAmount: ULong = paymentRequest
+    //         .amount
+    //         ?.truncateToSatoshi()
+    //         ?.toULong() ?: throw Exception("Payment request does not have an amount.")
+    //
+    //     val availableDenominations: List<ULong> = transaction(DBSettings.db) {
+    //         SchemaUtils.create(DBProof)
+    //         DBProof
+    //             .selectAll()
+    //             .map { it[DBProof.amount] }
+    //     }
+    //     val totalBalance = availableDenominations.sum()
+    //
+    //     if (totalBalance < paymentAmount + fee.fee) {
+    //         throw Exception("Not enough tokens to pay for the payment request.")
+    //     }
+    //
+    //     val isSplitRequired: SwapRequired = isSplitRequired(
+    //         availableDenominations = availableDenominations,
+    //         targetAmount = paymentAmount + fee.fee
+    //     )
+    //
+    //     val finalListOfDenominations = when (isSplitRequired) {
+    //         is SwapRequired.No  -> isSplitRequired.finalList
+    //         is SwapRequired.Yes -> {
+    //             // If a swap is required, we handle it here before moving on
+    //             val missingDenominations = swap(
+    //                 denominationToSwap = isSplitRequired.swapDenomination,
+    //                 requiredAmount = isSplitRequired.requiredAmount
+    //             )
+    //
+    //             isSplitRequired.almostFinishedList + missingDenominations
+    //         }
+    //     }
+    //
+    //     require(finalListOfDenominations.sum() == paymentAmount + fee.fee) {
+    //         "The sum of tokens to spend must be equal to the sum of the required tokens."
+    //     }
+    //
+    //     val preMeltBundle: PreMeltBundle = PreMeltBundle.create(finalListOfDenominations, paymentRequest)
+    //     val meltRequest: MeltRequest = preMeltBundle.buildMeltRequest()
+    //
+    //     val response = async {
+    //         client.post("$mintUrl/melt") {
+    //             method = HttpMethod.Post
+    //             contentType(ContentType.Application.Json)
+    //             setBody(meltRequest)
+    //         }
+    //     }.await()
+    //     client.close()
+    //
+    //     val responseString: String = response.body<String>()
+    //     println("Response from mint: $responseString")
+    //     val meltResponse: MeltResponse = response.body<MeltResponse>()
+    //     println("Melt response: $meltResponse")
+    //
+    //     if (meltResponse.paid) {
+    //         processMeltResponse(preMeltBundle)
+    //     } else {
+    //         throw Exception("The payment request was not paid.")
+    //     }
+    // }
 
     private fun processMeltResponse(preMeltBundle: PreMeltBundle) {
         // TODO: Should we simply mark them as archived instead of deleting them? We could have a separate method for
