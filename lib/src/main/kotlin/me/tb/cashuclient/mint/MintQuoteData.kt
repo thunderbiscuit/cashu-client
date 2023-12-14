@@ -17,8 +17,8 @@ public data class MintQuoteData(
     public companion object {
         public fun fromMintQuoteResponse(initialPaymentAmount: Satoshi, mintQuoteResponse: MintQuoteResponse): MintQuoteData {
             println("Inside the fromMintQuoteResponse mint quote response is $mintQuoteResponse")
-            val paymentRequest: PaymentRequest? = PaymentRequest.read(mintQuoteResponse.request)
-            val totalPayment: Satoshi = paymentRequest!!.amount?.truncateToSatoshi() ?: throw IllegalStateException("Payment request has no amount")
+            val paymentRequest: PaymentRequest = mintQuoteResponse.request
+            val totalPayment: Satoshi = paymentRequest.amount?.truncateToSatoshi() ?: throw IllegalStateException("Payment request has no amount")
             val fee = totalPayment.sat - initialPaymentAmount.sat
             val feeRate = fee.toDouble() / initialPaymentAmount.sat.toDouble()
 

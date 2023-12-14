@@ -5,13 +5,16 @@
 
 package me.tb.cashuclient.mint
 
+import fr.acinq.lightning.payment.PaymentRequest
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import me.tb.cashuclient.types.PaymentRequestSerializer
 
 @Serializable
 public data class MintQuoteResponse(
     @SerialName("quote") public val quoteId: String,
-    public val request: String,
+    @Serializable(with = PaymentRequestSerializer::class)
+    public val request: PaymentRequest,
     public val paid: Boolean,
     public val expiry: Int
 )

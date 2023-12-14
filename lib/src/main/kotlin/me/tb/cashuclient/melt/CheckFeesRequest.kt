@@ -7,11 +7,13 @@ package me.tb.cashuclient.melt
 
 import fr.acinq.lightning.payment.PaymentRequest
 import kotlinx.serialization.Serializable
+import me.tb.cashuclient.types.PaymentRequestSerializer
 
 /**
  * Request to the mint to check fees for a given BOLT-11 Lightning invoice.
  */
 @Serializable
 public data class CheckFeesRequest(
+    @Serializable(with = PaymentRequestSerializer::class)
     public val pr: PaymentRequest
 )

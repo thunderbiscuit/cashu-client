@@ -7,6 +7,7 @@ package me.tb.cashuclient.melt
 
 import fr.acinq.lightning.payment.PaymentRequest
 import kotlinx.serialization.Serializable
+import me.tb.cashuclient.types.PaymentRequestSerializer
 import me.tb.cashuclient.types.Proof
 
 /**
@@ -15,5 +16,6 @@ import me.tb.cashuclient.types.Proof
 @Serializable
 public data class MeltRequest(
     public val proofs: List<Proof>,
+    @Serializable(with = PaymentRequestSerializer::class)
     public val paymentRequest: PaymentRequest
 )

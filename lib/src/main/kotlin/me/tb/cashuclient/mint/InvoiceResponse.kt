@@ -5,7 +5,6 @@
  
 package me.tb.cashuclient.mint
 
-import fr.acinq.lightning.payment.PaymentRequest
 import kotlinx.serialization.Serializable
 
 @Serializable
