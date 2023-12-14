@@ -8,6 +8,8 @@ package me.tb.cashuclient
 public const val PREFIX: String = "cashu"
 public const val V3VERSION: String = "A"
 
-public const val ACTIVE_KEYSET_PATH: String = "/v1/keys"
-public const val SPECIFIC_KEYSET_PATH: String = "/v1/keys/"
+public const val ACTIVE_KEYSET_ENDPOINT: String = "/v1/keys"
+public const val SPECIFIC_KEYSET_ENDPOINT: String = "/v1/keys/"
 public const val SWAP_ENDPOINT: String = "/v1/swap"
+public const val MINT_QUOTE_ENDPOINT: String = "/v1/mint/quote/"
+public const val MINT_QUOTE_STATUS_ENDPOINT: String = "/v1/mint/quote/bolt11/"
