@@ -11,6 +11,7 @@ import me.tb.cashuclient.types.EcashUnit
 import me.tb.cashuclient.types.Keyset
 import me.tb.cashuclient.types.KeysetId
 import me.tb.cashuclient.types.PaymentMethod
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -152,16 +153,42 @@ class WalletTest {
         )
     }
 
+    @Ignore("There are no mainnet or testnet mints that implement the v1 endpoints yet")
     @Test
     fun `Wallet can request a mint quote`() {
-        val wallet: Wallet = Wallet(mintUrl = "https://8333.space:3338", unit = EcashUnit.SAT)
+        // val wallet: Wallet = Wallet(mintUrl = "https://8333.space:3338", unit = EcashUnit.SAT)
         // val wallet: Wallet = Wallet(mintUrl = "https://legend.lnbits.com/cashu/api", unit = EcashUnit.SAT)
+        val wallet = Wallet(mintUrl = "https://testnut.cashu.space", unit = EcashUnit.SAT)
         // val wallet: Wallet = Wallet(mintUrl = "https://mutinynet.moksha.cash:3338", unit = EcashUnit.SAT)
-        // val wallet = Wallet(mintUrl = "https://testnut.cashu.space", unit = EcashUnit.SAT)
-        val quote = wallet.requestMintQuote(Satoshi(100), paymentMethod = PaymentMethod.BOLT11)
+        val quote = wallet.requestMintQuote(Satoshi(5000), paymentMethod = PaymentMethod.BOLT11)
+
 
         println(quote)
     }
+
+    @Ignore("There are no mainnet or testnet mints that implement the v1 endpoints yet")
+    @Test
+    fun `Wallet can check the status quote for mint`() {
+        // mutinynet.mocksha.cash uses signet, which the ACINQ library doesn't support yet
+        // val wallet: Wallet = Wallet(mintUrl = "https://mutinynet.moksha.cash:3338", unit = EcashUnit.SAT)
+
+        // testnut.cashu.space returns invalid payment requests, which we don't handle yet
+        // val wallet: Wallet = Wallet(mintUrl = "https://testnut.cashu.space", unit = EcashUnit.SAT)
+
+        // 8333.space:3338 doesn't implement the v1 endpoints yet
+        val wallet: Wallet = Wallet(mintUrl = "https://8333.space:3338", unit = EcashUnit.SAT)
+
+        val quoteData: MintQuoteData = wallet.requestMintQuote(
+            amount = Satoshi(100),
+            paymentMethod = PaymentMethod.BOLT11
+        )
+        println(quoteData)
+        val quoteId = quoteData.quote.quoteId
+
+        val status = wallet.checkMintQuoteStatus(quoteId)
+        println(status)
+    }
+
     // TODO: Fix this test: from what I understand the test completes before the BD has finished its work,
     //       so we're getting a "kotlinx.coroutines.JobCancellationException: Parent job is Completed" exception.
     // @Test
