@@ -18,7 +18,6 @@ import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.get
 import io.ktor.client.request.post
-import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
@@ -29,21 +28,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
-import me.tb.cashuclient.db.DBBolt11Payment
 import me.tb.cashuclient.db.DBProof
 import me.tb.cashuclient.db.DBSettings
-import me.tb.cashuclient.mint.PreMintBundle
 import me.tb.cashuclient.melt.CheckFeesRequest
 import me.tb.cashuclient.melt.CheckFeesResponse
-import me.tb.cashuclient.mint.InvoiceResponse
-import me.tb.cashuclient.melt.MeltRequest
-import me.tb.cashuclient.melt.MeltResponse
 import me.tb.cashuclient.melt.PreMeltBundle
 import me.tb.cashuclient.mint.MintQuoteData
 import me.tb.cashuclient.mint.MintQuoteRequest
 import me.tb.cashuclient.mint.MintQuoteResponse
-import me.tb.cashuclient.mint.MintRequest
-import me.tb.cashuclient.mint.MintResponse
 import me.tb.cashuclient.swap.PreSwapBundle
 import me.tb.cashuclient.swap.SwapResponse
 import me.tb.cashuclient.types.ActiveKeysetsResponse
@@ -55,13 +47,11 @@ import me.tb.cashuclient.types.PaymentMethod
 import me.tb.cashuclient.types.PreRequestBundle
 import me.tb.cashuclient.types.Proof
 import me.tb.cashuclient.types.SpecificKeysetResponse
-import me.tb.cashuclient.types.SwapRequired
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
 public typealias NewAvailableDenominations = List<ULong>
@@ -158,9 +148,16 @@ public class Wallet(
         MintQuoteData.fromMintQuoteResponse(amount, mintQuoteResponse)
     }
 
-        val mintResponse: MintResponse = response.body()
+    public fun checkMintQuoteStatus(quoteId: String): MintQuoteResponse = runBlocking(Dispatchers.IO) {
+        val client = createClient()
 
-        processBlindedSignaturesResponse(preMintBundle, mintResponse)
+        val response = async {
+            client.get("$mintUrl$MINT_QUOTE_STATUS_ENDPOINT$quoteId")
+        }.await()
+        client.close()
+        println("Response from the mint regarding quote status: ${response.bodyAsText()}")
+        val mintQuoteResponse: MintQuoteResponse = response.body<MintQuoteResponse>()
+        mintQuoteResponse
     }
 
     // TODO: This method doesn't handle mint errors yet.

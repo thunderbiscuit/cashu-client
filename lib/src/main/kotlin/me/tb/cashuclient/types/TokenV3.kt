@@ -26,7 +26,7 @@ public data class TokenV3(
             val fullV3Prefix: String = PREFIX + V3VERSION
 
             // For V3 tokens the prefix must be "cashuA"
-            require(serializedTokenV3.startsWith(fullV3Prefix)) { "Invalid token V3 prefix." }
+            require(serializedTokenV3.startsWith(fullV3Prefix)) { "Invalid token V3 prefix: ${serializedTokenV3.take(6)}" }
 
             val encoded: String = serializedTokenV3.substring(startIndex = fullV3Prefix.length)
             val jsonString: String = Base64.getUrlDecoder().decode(encoded).toString(Charsets.UTF_8)
