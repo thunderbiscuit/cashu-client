@@ -5,4 +5,4 @@ onetest TEST:
   ./gradlew test --tests {{TEST}}
 
 serve:
-  mkdocs serve
+  ./gradlew dokkaHtml && rm -rf ./docs/api/ && mv ./lib/build/dokka/html ./docs/api && mkdocs serve

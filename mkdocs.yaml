@@ -46,3 +46,4 @@ nav:
     - Mint: "mint.md"
     - Swap: "swap.md"
     - Melt: "melt.md"
+  - API Docs: "./api/"
