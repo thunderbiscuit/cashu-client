@@ -19,7 +19,7 @@ public interface BlindingData {
 
 internal fun createBlindingData(): Triple<Secret, PublicKey, PrivateKey> {
     val secret = Secret()
-    val blindingFactorBytes = randomBytes(32)
+    val blindingFactorBytes: ByteArray = randomBytes(32)
     val blindingFactor: PrivateKey = PrivateKey(blindingFactorBytes)
     val blindedSecret: PublicKey = hashToCurve(secret.value) + blindingFactor.publicKey()
     return Triple(secret, blindedSecret, blindingFactor)

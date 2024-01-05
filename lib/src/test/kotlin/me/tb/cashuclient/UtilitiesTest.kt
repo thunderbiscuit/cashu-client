@@ -8,6 +8,7 @@ package me.tb.cashuclient
 import fr.acinq.bitcoin.PublicKey
 import fr.acinq.secp256k1.Hex
 import me.tb.cashuclient.types.SwapRequired
+import me.tb.cashuclient.types.createBlindingData
 import java.lang.IllegalArgumentException
 import kotlin.test.Test
 import kotlin.test.assertEquals

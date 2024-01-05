@@ -13,8 +13,7 @@ import me.tb.cashuclient.types.PaymentRequestSerializer
 @Serializable
 public data class MintQuoteResponse(
     @SerialName("quote") public val quoteId: String,
-    @Serializable(with = PaymentRequestSerializer::class)
-    public val request: PaymentRequest,
+    @Serializable(with = PaymentRequestSerializer::class) public val request: PaymentRequest,
     public val paid: Boolean,
     public val expiry: Int
 )

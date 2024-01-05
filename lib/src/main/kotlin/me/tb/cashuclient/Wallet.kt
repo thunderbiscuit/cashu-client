@@ -36,6 +36,9 @@ import me.tb.cashuclient.melt.PreMeltBundle
 import me.tb.cashuclient.mint.MintQuoteData
 import me.tb.cashuclient.mint.MintQuoteRequest
 import me.tb.cashuclient.mint.MintQuoteResponse
+import me.tb.cashuclient.mint.MintRequest
+import me.tb.cashuclient.mint.MintResponse
+import me.tb.cashuclient.mint.PreMintBundle
 import me.tb.cashuclient.swap.PreSwapBundle
 import me.tb.cashuclient.swap.SwapResponse
 import me.tb.cashuclient.types.ActiveKeysetsResponse
@@ -158,6 +161,41 @@ public class Wallet(
         println("Response from the mint regarding quote status: ${response.bodyAsText()}")
         val mintQuoteResponse: MintQuoteResponse = response.body<MintQuoteResponse>()
         mintQuoteResponse
+    }
+
+    /**
+     * Request newly minted tokens from the mint. Note that this is done in two parts, this method being the second of
+     * the two. You must first ask the mint for a quote, pay the invoice it quoted, and then call this method. The mint
+     * returns a list of [me.tb.cashuclient.types.BlindedSignature]s, which the client unblinds and adds to its
+     * database.
+     *
+     * Note that the library currently only supports a single payment method, bolt11 lightning invoices, and a single
+     * unit, the satoshi.
+     *
+     * @param amount The total value to mint.
+     * @param quote The quote returned by the mint when queried on the quote/bolt11 endpoint.
+     */
+    public fun mint(amount: ULong, quote: MintQuoteResponse): Unit = runBlocking(Dispatchers.IO) {
+        val client = createClient()
+        val scopedActiveKeyset = activeKeyset ?: throw Exception("The wallet must have an active keyset for the mint when attempting a mint operation.")
+        val unit: EcashUnit = EcashUnit.SAT
+
+        // Use it to build a mint request
+        val preMintBundle: PreMintBundle = PreMintBundle.create(amount, scopedActiveKeyset.keysetId)
+        val mintingRequest: MintRequest = preMintBundle.buildMintRequest()
+
+        val response = async {
+            client.post("$mintUrl$MINT_ENDPOINT/bolt11") {
+                method = HttpMethod.Post
+                contentType(ContentType.Application.Json)
+                setBody(mintingRequest)
+            }
+        }.await()
+        client.close()
+
+        val mintResponse: MintResponse = response.body()
+
+        processBlindedSignaturesResponse(preMintBundle, mintResponse)
     }
 
     // TODO: This method doesn't handle mint errors yet.
@@ -344,8 +382,9 @@ public class Wallet(
     // ---------------------------------------------------------------------------------------------
 
     /**
-     * The wallet processes the mint's response by unblinding the signatures and adding the [Proof]s to its database. If
-     * this processing is for a swap request, the wallet also deletes the proof that was spent to create the swap.
+     * The wallet processes the mint's response containing [BlindedSignature]s by unblinding the signatures and adding
+     * the [Proof]s to its database. If this processing is for a swap request, the wallet also deletes the proof that
+     * was spent to create the swap.
      */
     private fun processBlindedSignaturesResponse(requestBundle: PreRequestBundle, mintResponse: BlindedSignaturesResponse): Unit {
         require(requestBundle.blindingDataItems.size == mintResponse.signatures.size) {
