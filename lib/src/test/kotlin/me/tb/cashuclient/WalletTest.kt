@@ -6,6 +6,7 @@
 package me.tb.cashuclient
 
 import fr.acinq.bitcoin.Satoshi
+import fr.acinq.lightning.payment.PaymentRequest
 import me.tb.cashuclient.mint.MintQuoteData
 import me.tb.cashuclient.types.EcashUnit
 import me.tb.cashuclient.types.Keyset
@@ -187,6 +188,15 @@ class WalletTest {
 
         val status = wallet.checkMintQuoteStatus(quoteId)
         println(status)
+    }
+
+    @Ignore("Find a way to produce a valid testnet payment request for unit tests")
+    @Test
+    fun `Wallet can request a melt quote`() {
+        val wallet: Wallet = Wallet(mintUrl = "https://testnut.cashu.space", unit = EcashUnit.SAT)
+        val paymentRequest = PaymentRequest.read("LNBC10U1P3PJ257PP5YZTKWJCZ5FTL5LAXKAV23ZMZEKAW37ZK6KMV80PK4XAEV5QHTZ7QDPDWD3XGER9WD5KWM36YPRX7U3QD36KUCMGYP282ETNV3SHJCQZPGXQYZ5VQSP5USYC4LK9CHSFP53KVCNVQ456GANH60D89REYKDNGSMTJ6YW3NHVQ9QYYSSQJCEWM5CJWZ4A6RFJX77C490YCED6PEMK0UPKXHY89CMM7SCT66K8GNEANWYKZGDRWRFJE69H9U5U0W57RRCSYSAS7GADWMZXC8C6T0SPJAZUP6")
+        val quote = wallet.requestMeltQuote(paymentRequest, EcashUnit.SAT)
+        println(quote)
     }
 
     // TODO: Fix this test: from what I understand the test completes before the BD has finished its work,

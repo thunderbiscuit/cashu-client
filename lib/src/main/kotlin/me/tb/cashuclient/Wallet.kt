@@ -32,6 +32,8 @@ import me.tb.cashuclient.db.DBProof
 import me.tb.cashuclient.db.DBSettings
 import me.tb.cashuclient.melt.CheckFeesRequest
 import me.tb.cashuclient.melt.CheckFeesResponse
+import me.tb.cashuclient.melt.MeltQuoteRequest
+import me.tb.cashuclient.melt.MeltQuoteResponse
 import me.tb.cashuclient.melt.PreMeltBundle
 import me.tb.cashuclient.mint.MintQuoteData
 import me.tb.cashuclient.mint.MintQuoteRequest
@@ -237,6 +239,24 @@ public class Wallet(
     // ---------------------------------------------------------------------------------------------
     // Melt
     // ---------------------------------------------------------------------------------------------
+
+    public fun requestMeltQuote(pr: PaymentRequest, unit: EcashUnit): MeltQuoteResponse = runBlocking(Dispatchers.IO) {
+        val client = createClient()
+        val meltQuoteRequest = MeltQuoteRequest(pr, EcashUnit.SAT)
+
+        val response = async {
+            client.post("$mintUrl${MELT_QUOTE_ENDPOINT}bolt11") {
+                method = HttpMethod.Post
+                contentType(ContentType.Application.Json)
+                setBody(meltQuoteRequest)
+            }
+        }.await()
+        client.close()
+        println("Response from mint: ${response.bodyAsText()}")
+        val meltQuoteResponse: MeltQuoteResponse = response.body<MeltQuoteResponse>()
+
+        meltQuoteResponse
+    }
 
     /**
      * Check the fees for a given payment request. This function is used internally as part of the [melt] call.
