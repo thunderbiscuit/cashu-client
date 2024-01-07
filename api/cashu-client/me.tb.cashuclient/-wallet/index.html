@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>Wallet</title>
+    <link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">
+    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async="async"></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer="defer"></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer="defer"></script>
+</head>
+<body>
+    <div class="root">
+<nav class="navigation" id="navigation-wrapper">
+    <div class="navigation--inner">
+        <div class="navigation-title">
+            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
+            <div class="library-name">
+                    <a class="library-name--link" href="../../../index.html">
+                            cashu-client
+                    </a>
+            </div>
+            <div class="library-version">
+0.0.1-SNAPSHOT            </div>
+        </div>
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":lib:dokkaHtml/main">jvm</button>
+        </div>
+    </div>
+    <div class="navigation-controls">
+        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
+        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
+    </div>
+</nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="sidebar--inner" id="sideMenu"></div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageIds="cashu-client::me.tb.cashuclient/Wallet///PointingToDeclaration//1440829338">
+  <div class="breadcrumbs"><a href="../../../index.html">cashu-client</a><span class="delimiter">/</span><a href="../index.html">me.tb.cashuclient</a><span class="delimiter">/</span><span class="current">Wallet</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span><span>Wallet</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":lib:dokkaHtml/main"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">Wallet</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">var </span>activeKeyset<span class="token operator">: </span><a href="../../me.tb.cashuclient.types/-keyset/index.html">Keyset</a><span class="token operator">?</span><span class="token operator"> = </span>null<span class="token punctuation">, </span></span><span class="parameter ">mintUrl<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">unit<span class="token operator">: </span><a href="../../me.tb.cashuclient.types/-ecash-unit/index.html">EcashUnit</a></span></span><span class="token punctuation">)</span></div><p class="paragraph">A wallet handles all operations between a client and a mint. A single wallet is associated with a single mint and a single unit.</p><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":lib:dokkaHtml/main" data-filterable-set=":lib:dokkaHtml/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>active</span><wbr></wbr><span><span>Keyset</span></span></u></div></span></div><div><div class="title"><p class="paragraph">The <a href="../../me.tb.cashuclient.types/-keyset/index.html">Keyset</a> that is currently active for the mint.</p></div></div></div></div><div class="table-row" data-filterable-current=":lib:dokkaHtml/main" data-filterable-set=":lib:dokkaHtml/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>mint</span><wbr></wbr><span><span>Url</span></span></u></div></span></div><div><div class="title"><p class="paragraph">The URL of the mint.</p></div></div></div></div><div class="table-row" data-filterable-current=":lib:dokkaHtml/main" data-filterable-set=":lib:dokkaHtml/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>unit</span></span></u></div></span></div><div><div class="title"><p class="paragraph">The underlying unit used with the ecash tokens for this wallet.</p></div></div></div></div></div></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="">Constructors</h2>
+        <div class="table"><a data-name="1005332216%2FConstructors%2F1440829338" anchor-label="Wallet" id="1005332216%2FConstructors%2F1440829338" data-filterable-set=":lib:dokkaHtml/main"></a>
+          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":lib:dokkaHtml/main" data-filterable-set=":lib:dokkaHtml/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-wallet.html"><span><span>Wallet</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1005332216%2FConstructors%2F1440829338"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":lib:dokkaHtml/main"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">activeKeyset<span class="token operator">: </span><a href="../../me.tb.cashuclient.types/-keyset/index.html">Keyset</a><span class="token operator">?</span><span class="token operator"> = </span>null<span class="token punctuation">, </span></span><span class="parameter ">mintUrl<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">unit<span class="token operator">: </span><a href="../../me.tb.cashuclient.types/-ecash-unit/index.html">EcashUnit</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="1834638122%2FProperties%2F1440829338" anchor-label="activeKeyset" id="1834638122%2FProperties%2F1440829338" data-filterable-set=":lib:dokkaHtml/main"></a>
+          <div class="table-row" data-filterable-current=":lib:dokkaHtml/main" data-filterable-set=":lib:dokkaHtml/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="active-keyset.html"><span>active</span><wbr></wbr><span><span>Keyset</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1834638122%2FProperties%2F1440829338"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":lib:dokkaHtml/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">var </span><a href="active-keyset.html">activeKeyset</a><span class="token operator">: </span><a href="../../me.tb.cashuclient.types/-keyset/index.html">Keyset</a><span class="token operator">?</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1657399358%2FProperties%2F1440829338" anchor-label="inactiveKeysets" id="-1657399358%2FProperties%2F1440829338" data-filterable-set=":lib:dokkaHtml/main"></a>
+          <div class="table-row" data-filterable-current=":lib:dokkaHtml/main" data-filterable-set=":lib:dokkaHtml/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="inactive-keysets.html"><span>inactive</span><wbr></wbr><span><span>Keysets</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1657399358%2FProperties%2F1440829338"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":lib:dokkaHtml/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="inactive-keysets.html">inactiveKeysets</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-mutable-list/index.html">MutableList</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../../me.tb.cashuclient.types/-keyset/index.html">Keyset</a><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="883329333%2FFunctions%2F1440829338" anchor-label="checkMintQuoteStatus" id="883329333%2FFunctions%2F1440829338" data-filterable-set=":lib:dokkaHtml/main"></a>
+          <div class="table-row" data-filterable-current=":lib:dokkaHtml/main" data-filterable-set=":lib:dokkaHtml/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="check-mint-quote-status.html"><span>check</span><wbr></wbr><span>Mint</span><wbr></wbr><span>Quote</span><wbr></wbr><span><span>Status</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="883329333%2FFunctions%2F1440829338"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":lib:dokkaHtml/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="check-mint-quote-status.html"><span class="token function">checkMintQuoteStatus</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">quoteId<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../me.tb.cashuclient.mint/-mint-quote-response/index.html">MintQuoteResponse</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-540480888%2FFunctions%2F1440829338" anchor-label="getActiveKeyset" id="-540480888%2FFunctions%2F1440829338" data-filterable-set=":lib:dokkaHtml/main"></a>
+          <div class="table-row" data-filterable-current=":lib:dokkaHtml/main" data-filterable-set=":lib:dokkaHtml/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-active-keyset.html"><span>get</span><wbr></wbr><span>Active</span><wbr></wbr><span><span>Keyset</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-540480888%2FFunctions%2F1440829338"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":lib:dokkaHtml/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="get-active-keyset.html"><span class="token function">getActiveKeyset</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Query the mint for the active <a href="../../me.tb.cashuclient.types/-keyset/index.html">Keyset</a> and set it as the active keyset.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-196113346%2FFunctions%2F1440829338" anchor-label="getSpecificKeyset" id="-196113346%2FFunctions%2F1440829338" data-filterable-set=":lib:dokkaHtml/main"></a>
+          <div class="table-row" data-filterable-current=":lib:dokkaHtml/main" data-filterable-set=":lib:dokkaHtml/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-specific-keyset.html"><span>get</span><wbr></wbr><span>Specific</span><wbr></wbr><span><span>Keyset</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-196113346%2FFunctions%2F1440829338"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":lib:dokkaHtml/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="get-specific-keyset.html"><span class="token function">getSpecificKeyset</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">keysetId<span class="token operator">: </span><a href="../../me.tb.cashuclient.types/-keyset-id/index.html">KeysetId</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../me.tb.cashuclient.types/-keyset/index.html">Keyset</a></div><div class="brief "><p class="paragraph">Query the mint for the <a href="../../me.tb.cashuclient.types/-keyset/index.html">Keyset</a> associated with a given <a href="../../me.tb.cashuclient.types/-keyset-id/index.html">KeysetId</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1718434632%2FFunctions%2F1440829338" anchor-label="mint" id="-1718434632%2FFunctions%2F1440829338" data-filterable-set=":lib:dokkaHtml/main"></a>
+          <div class="table-row" data-filterable-current=":lib:dokkaHtml/main" data-filterable-set=":lib:dokkaHtml/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="mint.html"><span><span>mint</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1718434632%2FFunctions%2F1440829338"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":lib:dokkaHtml/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="mint.html"><span class="token function">mint</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">amount<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-u-long/index.html">ULong</a><span class="token punctuation">, </span></span><span class="parameter ">quote<span class="token operator">: </span><a href="../../me.tb.cashuclient.mint/-mint-quote-response/index.html">MintQuoteResponse</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Request newly minted tokens from the mint. Note that this is done in two parts, this method being the second of the two. You must first ask the mint for a quote, pay the invoice it quoted, and then call this method. The mint returns a list of <a href="../../me.tb.cashuclient.types/-blinded-signature/index.html">me.tb.cashuclient.types.BlindedSignature</a>s, which the client unblinds and adds to its database.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-453820440%2FFunctions%2F1440829338" anchor-label="requestMeltQuote" id="-453820440%2FFunctions%2F1440829338" data-filterable-set=":lib:dokkaHtml/main"></a>
+          <div class="table-row" data-filterable-current=":lib:dokkaHtml/main" data-filterable-set=":lib:dokkaHtml/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="request-melt-quote.html"><span>request</span><wbr></wbr><span>Melt</span><wbr></wbr><span><span>Quote</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-453820440%2FFunctions%2F1440829338"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":lib:dokkaHtml/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="request-melt-quote.html"><span class="token function">requestMeltQuote</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">pr<span class="token operator">: </span><span data-unresolved-link="fr.acinq.lightning.payment/PaymentRequest///PointingToDeclaration/">PaymentRequest</span><span class="token punctuation">, </span></span><span class="parameter ">unit<span class="token operator">: </span><a href="../../me.tb.cashuclient.types/-ecash-unit/index.html">EcashUnit</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../me.tb.cashuclient.melt/-melt-quote-response/index.html">MeltQuoteResponse</a></div><div class="brief "><p class="paragraph">Initiate minting request with the mint for a given amount. The mint will return a bolt11 invoice the client must pay in order to proceed to the next step and request newly minted tokens.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-111271089%2FFunctions%2F1440829338" anchor-label="requestMintQuote" id="-111271089%2FFunctions%2F1440829338" data-filterable-set=":lib:dokkaHtml/main"></a>
+          <div class="table-row" data-filterable-current=":lib:dokkaHtml/main" data-filterable-set=":lib:dokkaHtml/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="request-mint-quote.html"><span>request</span><wbr></wbr><span>Mint</span><wbr></wbr><span><span>Quote</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-111271089%2FFunctions%2F1440829338"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":lib:dokkaHtml/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="request-mint-quote.html"><span class="token function">requestMintQuote</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">amount<span class="token operator">: </span><span data-unresolved-link="fr.acinq.bitcoin/Satoshi///PointingToDeclaration/">Satoshi</span><span class="token punctuation">, </span></span><span class="parameter ">paymentMethod<span class="token operator">: </span><a href="../../me.tb.cashuclient.types/-payment-method/index.html">PaymentMethod</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../me.tb.cashuclient.mint/-mint-quote-data/index.html">MintQuoteData</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2024 Copyright</span><span
+                class="pull-right"><span>Generated by </span><a
+                href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
