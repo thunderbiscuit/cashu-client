@@ -1,5 +1,5 @@
 # Install and Build Instructions
-The library is not available on Maven Central; to use, you must build and deploy locally.
+The library is not available on Maven Central. To use it, you must build and deploy locally.
 
 To build the library locally and deploy to your local Maven repository, clone the git repository and run the following command:
 ```shell

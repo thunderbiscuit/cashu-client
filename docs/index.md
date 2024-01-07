@@ -1,9 +1,9 @@
-# About [cashu-client](https://github.com/thunderbiscuit/cashu-client)
+# About
 A Kotlin Multiplatform client library to interact with the [Cashu protocol].
 
 ---
 
-This website provides high-level documentation for understanding and leveraging the [cashu-client](https://github.com/thunderbiscuit/cashu-client) library. You can read our [API docs here](https://thunderbiscuit.github.io/cashu-client/).
+This website provides high-level documentation for understanding and leveraging the [cashu-client] library. You can read our [API docs here].
 
 The main goals of this library are:  
 
@@ -24,3 +24,5 @@ The main goals of this library are:
 <br>
 
 [Cashu protocol]: https://github.com/cashubtc/nuts
+[cashu-client]: https://github.com/thunderbiscuit/cashu-client
+[API docs here]: ./api/
