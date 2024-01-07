@@ -22,7 +22,7 @@ jobs:
         run: ./gradlew dokkaHtml
 
       - name: "Add API docs to mkdocs structure"
-        run: mv ./build/dokka/html/ ./docs/api/
+        run: mv ./lib/build/dokka/html/ ./docs/api/
 
       - name: "Install Python"
         uses: actions/setup-python@v4
