@@ -62,23 +62,23 @@ public fun randomBytes(size: Int): ByteArray {
     return secret
 }
 
-public fun base64ToBase64UrlSafe(base64: String): String {
-    return base64.replace('+', '-').replace('/', '_').replace("=", "")
-}
+// public fun base64ToBase64UrlSafe(base64: String): String {
+//     return base64.replace('+', '-').replace('/', '_').replace("=", "")
+// }
 
-/*
+// TODO: This function is where a lot of the gains could be made in terms of performance and resource utilization.
+/**
  * Given a list of available denominations and a target amount, return a [SwapRequired] that lets you know if you'll
  * need a swap or not. If you don't need a swap, the final list of denominations is returned. If you do need a swap,
  * a list of token amounts that almost add up to the target amount is returned, along with one more denomination you'll
  * need to swap in order to hit the target amount.
  *
- * TODO: This function is where a lot of the gains could be made in terms of performance and resource utilization.
- *
- * @param availableDenominations The list of denominations available to the wallet.
- * @param targetAmount The target amount to reach.
+ * @param allDenominations The list of denominations available to the wallet.
+ * @param targetAmount     The target amount to reach.
  */
-public fun isSplitRequired(availableDenominations: List<ULong>, targetAmount: ULong): SwapRequired {
-    val sortedDenominations = availableDenominations.sortedDescending()
+public fun isSwapRequired(allDenominations: List<ULong>, targetAmount: ULong): SwapRequired {
+    val sortedDenominations = allDenominations.sortedDescending()
+    val availableDenominations = sortedDenominations.toMutableList()
     val selectedDenominations = mutableListOf<ULong>()
     var currentSum = 0uL
 
@@ -89,12 +89,25 @@ public fun isSplitRequired(availableDenominations: List<ULong>, targetAmount: UL
 
         if (currentSum + denomination > targetAmount) {
             val requiredAmount = targetAmount - currentSum
-            return SwapRequired.Yes(selectedDenominations, denomination, requiredAmount)
+            return SwapRequired.Yes(
+                requiredAmount = requiredAmount,
+                almostFinishedList = selectedDenominations,
+                availableForSwap = availableDenominations.toList(),
+            )
         } else {
-            selectedDenominations.add(denomination)
+            moveFromAvailableToSelected(denomination, availableDenominations, selectedDenominations)
             currentSum += denomination
         }
     }
 
     throw Exception("Something went wrong in isSplitRequired")
+}
+
+private fun moveFromAvailableToSelected(
+    denomination: ULong,
+    availableDenominations: MutableList<ULong>,
+    selectedDenominations: MutableList<ULong>,
+) {
+    availableDenominations.remove(denomination)
+    selectedDenominations.add(denomination)
 }

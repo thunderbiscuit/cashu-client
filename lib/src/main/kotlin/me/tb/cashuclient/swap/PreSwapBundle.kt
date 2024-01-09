@@ -26,15 +26,15 @@ import org.jetbrains.exposed.sql.transactions.transaction
  * response [SwapResponse], the data from this [PreSwapBundle] object is combined with it to create valid tokens
  * (promises).
  *
- * @property proofsToSwap The list of [Proof]s the wallet intends to send to the mint for swapping.
+ * @property proofsToSwap      The list of [Proof]s the wallet intends to send to the mint for swapping.
  * @property blindingDataItems The list of [PreSwapItem]s that will be used to create the [BlindedMessage]s sent to the
- * mint.
- * @property keysetId The [KeysetId] of the keyset the wallet expects will be signing the [BlindedMessage]s.
+ *                             mint.
+ * @property keysetId          The [KeysetId] of the keyset the wallet expects will be signing the [BlindedMessage]s.
  */
 public class PreSwapBundle private constructor(
     public val proofsToSwap: List<Proof>,
     public override val blindingDataItems: List<PreSwapItem>,
-    public override val keysetId: KeysetId
+    private val keysetId: KeysetId
 ) : PreRequestBundle {
     public fun buildSwapRequest(): SwapRequest {
         val outputs: List<BlindedMessage> = blindingDataItems.map { preSplitItem ->
@@ -52,20 +52,34 @@ public class PreSwapBundle private constructor(
     }
 
     public companion object {
-        // TODO: This currently only supports swapping a single denomination, but should support any number of them.
         /**
-         * Creates a [PreSwapBundle] from a denomination the user wishes to swap and a target amount.
+         * Creates a [PreSwapBundle] for a required amount and given available denominations for swapping.
          *
-         * @param denominationToSwap The denomination we wish to use to create the swap.
-         * @param requiredAmount The target amount.
+         * @param availableForSwap The denomination we wish to use to create the swap.
+         * @param requiredAmount   The target amount.
+         * @param keysetId         The [KeysetId] of the keyset the wallet expects will be signing the [BlindedMessage]s.
          */
         public fun create(
-            denominationToSwap: ULong,
+            availableForSwap: List<ULong>,
             requiredAmount: ULong,
             keysetId: KeysetId,
         ): PreSwapBundle {
+
+            var runningTotal = 0uL
+            val denominationsToSwap: List<ULong> = availableForSwap.takeWhile {
+                val tempTotal = runningTotal + it
+                if (tempTotal >= requiredAmount) {
+                    false
+                } else {
+                    runningTotal = tempTotal
+                    true
+                }
+            }
+
             val requiredDenominations: List<ULong> = decomposeAmount(requiredAmount)
-            val changeDenominations: List<ULong> = decomposeAmount(denominationToSwap - requiredAmount)
+            val overPayment: ULong = runningTotal - requiredAmount
+            val changeDenominations: List<ULong> = if (overPayment > 0uL) decomposeAmount(overPayment) else emptyList()
+
             val requestDenominations = requiredDenominations + changeDenominations
 
             val preSwapItem: List<PreSwapItem> = requestDenominations.map { amount ->
@@ -74,23 +88,28 @@ public class PreSwapBundle private constructor(
                 )
             }
 
-            // Go get a proof in the database for the denomination required
+            // Go get a proof in the database for the denominations required
             DBSettings.db
-            val proof: Proof = transaction {
+            val proofs: List<Proof> = transaction {
                 SchemaUtils.create(DBProof)
-                val proof: Proof? = DBProof.select { DBProof.amount eq denominationToSwap }.firstOrNull()?.let {
-                    Proof(
-                        amount = it[DBProof.amount],
-                        id = it[DBProof.id],
-                        secret = it[DBProof.secret],
-                        C = it[DBProof.C],
-                        script = it[DBProof.script]
-                    )
+
+                denominationsToSwap.map { denomination ->
+                    DBProof.select { DBProof.amount eq denomination }
+                        .limit(1)
+                        .firstOrNull()
+                        ?.let {
+                            Proof(
+                                amount = it[DBProof.amount],
+                                id = it[DBProof.id],
+                                secret = it[DBProof.secret],
+                                C = it[DBProof.C],
+                                script = it[DBProof.script]
+                            )
+                        } ?: throw Exception("No proof found for denomination $denomination")
                 }
-                proof ?: throw Exception("No proof found for denomination $denominationToSwap")
             }
 
-            return PreSwapBundle(listOf(proof), preSwapItem, keysetId)
+            return PreSwapBundle(proofs, preSwapItem, keysetId)
         }
     }
 }

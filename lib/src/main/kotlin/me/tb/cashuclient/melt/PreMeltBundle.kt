@@ -25,7 +25,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
  */
 public class PreMeltBundle private constructor(
     public val proofs: List<Proof>,
-    public val paymentRequest: PaymentRequest,
+    private val quoteId: String,
     public val potentialChangeOutputs: List<BlindedMessage>? = null
 ) {
     /**
@@ -34,8 +34,8 @@ public class PreMeltBundle private constructor(
      */
     public fun buildMeltRequest(): MeltRequest {
         return MeltRequest(
+            quoteId = quoteId,
             proofs = proofs,
-            paymentRequest = paymentRequest,
         )
     }
 
@@ -44,12 +44,12 @@ public class PreMeltBundle private constructor(
          * A factory method to create a [PreMeltBundle] from a list of denominations and a [PaymentRequest].
          *
          * @param denominationsToUse The denominations to use for the melt.
-         * @param paymentRequest The payment request to pay the mint.
+         * @param quoteId            The id of the quote given by the mint.
          * @return A [PreMeltBundle] containing the proofs and payment request.
          */
         public fun create(
             denominationsToUse: List<ULong>,
-            paymentRequest: PaymentRequest
+            quoteId: String
         ): PreMeltBundle {
 
             DBSettings.db
@@ -72,7 +72,7 @@ public class PreMeltBundle private constructor(
 
             return PreMeltBundle(
                 proofs = proofs,
-                paymentRequest = paymentRequest,
+                quoteId = quoteId,
                 potentialChangeOutputs = null
             )
         }

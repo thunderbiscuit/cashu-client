@@ -7,5 +7,4 @@
 
 public interface PreRequestBundle {
     public val blindingDataItems: List<BlindingData>
-    public val keysetId: KeysetId
 }

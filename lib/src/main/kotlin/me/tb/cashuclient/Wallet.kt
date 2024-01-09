@@ -30,8 +30,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import me.tb.cashuclient.db.DBProof
 import me.tb.cashuclient.db.DBSettings
-import me.tb.cashuclient.melt.CheckFeesRequest
-import me.tb.cashuclient.melt.CheckFeesResponse
 import me.tb.cashuclient.melt.MeltQuoteRequest
 import me.tb.cashuclient.melt.MeltQuoteResponse
 import me.tb.cashuclient.melt.MeltRequest
@@ -206,40 +204,7 @@ public class Wallet(
         mintQuoteResponse
     }
 
-    /**
-     * Request newly minted tokens from the mint. Note that this is done in two parts, this method being the second of
-     * the two. You must first ask the mint for a quote, pay the invoice it quoted, and then call this method. The mint
-     * returns a list of [me.tb.cashuclient.types.BlindedSignature]s, which the client unblinds and adds to its
-     * database.
-     *
-     * Note that the library currently only supports a single payment method, bolt11 lightning invoices, and a single
-     * unit, the satoshi.
-     *
-     * @param amount The total value to mint.
-     * @param quote The quote returned by the mint when queried on the quote/bolt11 endpoint.
-     */
-    public fun mint(amount: ULong, quote: MintQuoteResponse): Unit = runBlocking(Dispatchers.IO) {
-        val client = createClient()
-        val scopedActiveKeyset = activeKeyset ?: throw Exception("The wallet must have an active keyset for the mint when attempting a mint operation.")
-        val unit: EcashUnit = EcashUnit.SAT
 
-        // Use it to build a mint request
-        val preMintBundle: PreMintBundle = PreMintBundle.create(amount, scopedActiveKeyset.keysetId)
-        val mintingRequest: MintRequest = preMintBundle.buildMintRequest()
-
-        val response = async {
-            client.post("$mintUrl$MINT_ENDPOINT/bolt11") {
-                method = HttpMethod.Post
-                contentType(ContentType.Application.Json)
-                setBody(mintingRequest)
-            }
-        }.await()
-        client.close()
-
-        val mintResponse: MintResponse = response.body()
-
-        processBlindedSignaturesResponse(preMintBundle, mintResponse)
-    }
 
     // TODO: This method doesn't handle mint errors yet.
     // TODO: Make sure we sanitize the logs
@@ -281,7 +246,7 @@ public class Wallet(
     // Melt
     // ---------------------------------------------------------------------------------------------
 
-    public fun requestMeltQuote(pr: PaymentRequest, unit: EcashUnit): MeltQuoteResponse = runBlocking(Dispatchers.IO) {
+    public fun requestMeltQuote(pr: PaymentRequest): MeltQuoteResponse = runBlocking(Dispatchers.IO) {
         val client = createClient()
         val meltQuoteRequest = MeltQuoteRequest(pr, EcashUnit.SAT)
 
@@ -300,107 +265,88 @@ public class Wallet(
     }
 
     /**
-     * Check the fees for a given payment request. This function is used internally as part of the [melt] call.
-     */
-    private fun checkFees(paymentRequest: PaymentRequest, client: HttpClient): CheckFeesResponse = runBlocking(Dispatchers.IO) {
-        val checkFeesRequest: CheckFeesRequest = CheckFeesRequest(paymentRequest)
-
-        val response = async {
-            client.post("$mintUrl/mint") {
-                method = HttpMethod.Post
-                contentType(ContentType.Application.Json)
-                setBody(checkFeesRequest)
-            }
-        }.await()
-
-        val responseString: String = response.body<String>()
-        println("Response from mint: $responseString")
-        val maximumFees: CheckFeesResponse = response.body<CheckFeesResponse>()
-        println("Maximum fees: $maximumFees")
-        maximumFees
-    }
-
-    /**
      * Melting is exchanging tokens for lightning payments. The process is done in two communication rounds:
-     * 1. Asking what the fees are likely to be for a given payment request.
+     * 1. Asking the mint for a quote for the given payment request (the quote will include fees and fee reserve).
      * 2. Sending the payment request and the fees to the mint.
      *
      * @param paymentRequest The lightning payment request.
      */
-    // private fun melt(paymentRequest: String): Unit = runBlocking(Dispatchers.IO) {
-    // // private fun melt(paymentRequest: PaymentRequest): Unit = runBlocking(Dispatchers.IO) {
-    //     val client = createClient()
-    //
-    //     val fee: CheckFeesResponse = checkFees(paymentRequest, client)
-    //     // TODO: Look into payment requests and make sure they always have an amount in the case of Cashu. I don't think
-    //     //       they do.
-    //     val paymentAmount: ULong = paymentRequest
-    //         .amount
-    //         ?.truncateToSatoshi()
-    //         ?.toULong() ?: throw Exception("Payment request does not have an amount.")
-    //
-    //     val availableDenominations: List<ULong> = transaction(DBSettings.db) {
-    //         SchemaUtils.create(DBProof)
-    //         DBProof
-    //             .selectAll()
-    //             .map { it[DBProof.amount] }
-    //     }
-    //     val totalBalance = availableDenominations.sum()
-    //
-    //     if (totalBalance < paymentAmount + fee.fee) {
-    //         throw Exception("Not enough tokens to pay for the payment request.")
-    //     }
-    //
-    //     val isSplitRequired: SwapRequired = isSplitRequired(
-    //         availableDenominations = availableDenominations,
-    //         targetAmount = paymentAmount + fee.fee
-    //     )
-    //
-    //     val finalListOfDenominations = when (isSplitRequired) {
-    //         is SwapRequired.No  -> isSplitRequired.finalList
-    //         is SwapRequired.Yes -> {
-    //             // If a swap is required, we handle it here before moving on
-    //             val missingDenominations = swap(
-    //                 denominationToSwap = isSplitRequired.swapDenomination,
-    //                 requiredAmount = isSplitRequired.requiredAmount
-    //             )
-    //
-    //             isSplitRequired.almostFinishedList + missingDenominations
-    //         }
-    //     }
-    //
-    //     require(finalListOfDenominations.sum() == paymentAmount + fee.fee) {
-    //         "The sum of tokens to spend must be equal to the sum of the required tokens."
-    //     }
-    //
-    //     val preMeltBundle: PreMeltBundle = PreMeltBundle.create(finalListOfDenominations, paymentRequest)
-    //     val meltRequest: MeltRequest = preMeltBundle.buildMeltRequest()
-    //
-    //     val response = async {
-    //         client.post("$mintUrl/melt") {
-    //             method = HttpMethod.Post
-    //             contentType(ContentType.Application.Json)
-    //             setBody(meltRequest)
-    //         }
-    //     }.await()
-    //     client.close()
-    //
-    //     val responseString: String = response.body<String>()
-    //     println("Response from mint: $responseString")
-    //     val meltResponse: MeltResponse = response.body<MeltResponse>()
-    //     println("Melt response: $meltResponse")
-    //
-    //     if (meltResponse.paid) {
-    //         processMeltResponse(preMeltBundle)
-    //     } else {
-    //         throw Exception("The payment request was not paid.")
-    //     }
-    // }
+    public fun melt(paymentRequest: PaymentRequest): Unit = runBlocking(Dispatchers.IO) {
+        val client = createClient()
+
+        val quote: MeltQuoteResponse = requestMeltQuote(paymentRequest)
+        // TODO: Look into payment requests and make sure they always have an amount in the case of Cashu. I don't think
+        //       they do.
+        val paymentAmount: ULong = paymentRequest
+            .amount
+            ?.truncateToSatoshi()
+            ?.toULong() ?: throw Exception("Payment request does not have an amount.")
+
+        val availableProofs: List<ULong> = transaction(DBSettings.db) {
+            SchemaUtils.create(DBProof)
+            DBProof
+                .selectAll()
+                .map { it[DBProof.amount] }
+        }
+        val totalBalance = availableProofs.sum()
+        val totalCost = quote.amount + quote.feeReserve
+
+        if (totalBalance < totalCost) {
+            throw Exception("Not enough proofs to pay for the payment request.")
+        }
+
+        val isSwapRequired: SwapRequired = isSwapRequired(
+            allDenominations = availableProofs,
+            targetAmount = quote.amount + quote.feeReserve
+        )
+
+        val finalListOfProofs = when (isSwapRequired) {
+            is SwapRequired.No  -> isSwapRequired.finalList
+            is SwapRequired.Yes -> {
+                // If a swap is required, we handle it here before moving on
+                val missingProofs = swap(
+                    availableForSwap = isSwapRequired.availableForSwap,
+                    requiredAmount = isSwapRequired.requiredAmount
+                )
+
+                isSwapRequired.almostFinishedList + missingProofs
+            }
+        }
+
+        require(finalListOfProofs.sum() == totalCost) {
+            "The sum of tokens to spend must be equal to the sum of the required tokens."
+        }
+
+        val preMeltBundle: PreMeltBundle = PreMeltBundle.create(finalListOfProofs, quote.quoteId)
+        val meltRequest: MeltRequest = preMeltBundle.buildMeltRequest()
+
+        val response = async {
+            client.post("$mintUrl/melt") {
+                method = HttpMethod.Post
+                contentType(ContentType.Application.Json)
+                setBody(meltRequest)
+            }
+        }.await()
+        client.close()
+
+        val responseString: String = response.body<String>()
+        println("Response from mint: $responseString")
+        val meltResponse: MeltResponse = response.body<MeltResponse>()
+        println("Melt response: $meltResponse")
+
+        if (meltResponse.paid) {
+            processMeltResponse(preMeltBundle)
+        } else {
+            throw Exception("The payment request was not paid.")
+        }
+    }
 
     private fun processMeltResponse(preMeltBundle: PreMeltBundle) {
         // TODO: Should we simply mark them as archived instead of deleting them? We could have a separate method for
         //       collecting the proofs that are archived and deleting them upon user request.
         // TODO: Should we add the preimage to the database?
+        // TODO: Does the inList operator delete _all_ proofs that match the condition or just the first one? In this
+        //       case secrets should always be unique anyway, but still I'm wondering how the API works.
         transaction(DBSettings.db) {
             SchemaUtils.create(DBProof)
             val secretsToDelete = preMeltBundle.proofs.map { it.secret }
@@ -412,12 +358,11 @@ public class Wallet(
     // Swap
     // ---------------------------------------------------------------------------------------------
 
-    // TODO: We should be able to swap multiple denominations in one call.
-    private fun swap(denominationToSwap: ULong, requiredAmount: ULong): NewAvailableDenominations = runBlocking {
+    private fun swap(availableForSwap: List<ULong>, requiredAmount: ULong): NewAvailableDenominations = runBlocking {
         val client = createClient()
         val scopedActiveKeyset = activeKeyset ?: throw Exception("The wallet must have an active keyset for the mint when attempting a swap operation.")
         
-        val preSwapRequestBundle = PreSwapBundle.create(denominationToSwap, requiredAmount, scopedActiveKeyset.keysetId)
+        val preSwapRequestBundle = PreSwapBundle.create(availableForSwap, requiredAmount, scopedActiveKeyset.keysetId)
         val swapRequest = preSwapRequestBundle.buildSwapRequest()
 
         val response = async {

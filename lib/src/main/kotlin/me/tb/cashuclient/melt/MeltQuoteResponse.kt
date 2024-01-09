@@ -5,6 +5,7 @@
 
 package me.tb.cashuclient.melt
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 // TODO: Look at making the expiry timestamp property typesafe.
@@ -12,7 +13,7 @@ import kotlinx.serialization.Serializable
 /**
  * This is the quote returned by the mint in response to a [MeltQuoteRequest].
  *
- * @property quote      The quote ID.
+ * @property quoteId    The quote ID.
  * @property amount     The amount that must be provided (this amount includes fees but not the fee reserve).
  * @property feeReserve The additional fee reserve required.
  * @property paid       Whether the invoice has been paid.
@@ -20,7 +21,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 public data class MeltQuoteResponse(
-    public val quote: String,
+    @SerialName("quote") public val quoteId: String,
     public val amount: ULong,
     public val feeReserve: ULong,
     public val paid: Boolean,

@@ -11,8 +11,8 @@ public sealed class SwapRequired {
     ): SwapRequired()
 
     public data class Yes(
-        val almostFinishedList: List<ULong>,
-        val swapDenomination: ULong,
         val requiredAmount: ULong,
+        val almostFinishedList: List<ULong>,
+        val availableForSwap: List<ULong>,
     ): SwapRequired()
 }
