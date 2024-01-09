@@ -5,6 +5,7 @@
 
 package me.tb.cashuclient.mint
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import me.tb.cashuclient.types.BlindedMessage
 
@@ -16,9 +17,10 @@ import me.tb.cashuclient.types.BlindedMessage
  *       NUT-03 has been sent) rather than what it is. `MintRequest` is, IMO, a better name, and conveys its purpose,
  *       particularly when coupled with its sibling object, `MintResponse`.
  *
- * @param outputs List of blinded messages to be signed.
+ * @property outputs List of blinded messages to be signed.
  */
 @Serializable
 public data class MintRequest(
+    @SerialName("quote") val quoteId: String,
     val outputs: List<BlindedMessage>
 )

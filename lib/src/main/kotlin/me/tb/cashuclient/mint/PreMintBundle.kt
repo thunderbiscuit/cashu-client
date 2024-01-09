@@ -20,11 +20,12 @@ import me.tb.cashuclient.types.createBlindingData
  * this data is then combined with the [MintResponse] to create valid tokens (promises).
  *
  * @property blindingDataItems The list of [PreMintItem]s that will be sent to the mint.
- * @property keysetId The [KeysetId] of the keyset the wallet expects will be signing the [BlindedMessage]s.
+ * @property keysetId          The [KeysetId] of the keyset the wallet expects will be signing the [BlindedMessage]s.
  */
 public class PreMintBundle private constructor(
     override val blindingDataItems: List<PreMintItem>,
-    override val keysetId: KeysetId
+    private val quoteId: String,
+    private val keysetId: KeysetId
 ) : PreRequestBundle {
     public fun buildMintRequest(): MintRequest {
         val outputs: List<BlindedMessage> = blindingDataItems.map { preMintItem ->
@@ -35,17 +36,20 @@ public class PreMintBundle private constructor(
             )
         }
 
-        return MintRequest(outputs = outputs)
+        return MintRequest(
+            quoteId = quoteId,
+            outputs = outputs
+        )
     }
 
     public companion object {
-        public fun create(value: ULong, keysetId: KeysetId): PreMintBundle {
+        public fun create(value: ULong, quoteId: String, keysetId: KeysetId): PreMintBundle {
             val tokenAmounts = decomposeAmount(value)
             val preMintItems: List<PreMintItem> = tokenAmounts.map { tokenAmount ->
                 PreMintItem.create(tokenAmount)
             }
 
-            return PreMintBundle(preMintItems, keysetId)
+            return PreMintBundle(preMintItems, quoteId, keysetId)
         }
     }
 }

@@ -34,6 +34,8 @@ import me.tb.cashuclient.melt.CheckFeesRequest
 import me.tb.cashuclient.melt.CheckFeesResponse
 import me.tb.cashuclient.melt.MeltQuoteRequest
 import me.tb.cashuclient.melt.MeltQuoteResponse
+import me.tb.cashuclient.melt.MeltRequest
+import me.tb.cashuclient.melt.MeltResponse
 import me.tb.cashuclient.melt.PreMeltBundle
 import me.tb.cashuclient.mint.MintQuoteData
 import me.tb.cashuclient.mint.MintQuoteRequest
@@ -52,11 +54,13 @@ import me.tb.cashuclient.types.PaymentMethod
 import me.tb.cashuclient.types.PreRequestBundle
 import me.tb.cashuclient.types.Proof
 import me.tb.cashuclient.types.SpecificKeysetResponse
+import me.tb.cashuclient.types.SwapRequired
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
 public typealias NewAvailableDenominations = List<ULong>
@@ -129,6 +133,43 @@ public class Wallet(
     // ---------------------------------------------------------------------------------------------
     // Mint
     // ---------------------------------------------------------------------------------------------
+
+    /**
+     * Request newly minted tokens from the mint. Note that this is done in two parts, this method being the second of
+     * the two. You must first ask the mint for a quote, pay the invoice it quoted, and then call this method. The mint
+     * returns a list of [me.tb.cashuclient.types.BlindedSignature]s, which the client unblinds and adds to its
+     * database.
+     *
+     * Note that the library currently only supports a single payment method, bolt11 lightning invoices, and a single
+     * unit, the satoshi.
+     *
+     * @param amount The total value to mint.
+     */
+    public fun mint(amount: Satoshi): Unit = runBlocking(Dispatchers.IO) {
+        val client = createClient()
+        val scopedActiveKeyset = activeKeyset ?: throw Exception("The wallet must have an active keyset for the mint when attempting a mint operation.")
+        val quote: MintQuoteData = requestMintQuote(amount, PaymentMethod.BOLT11)
+
+        val preMintBundle: PreMintBundle  = PreMintBundle.create(
+            amount.sat.toULong(),
+            quote.quote.quoteId,
+            scopedActiveKeyset.keysetId
+        )
+        val mintingRequest: MintRequest = preMintBundle.buildMintRequest()
+
+        val response = async {
+            client.post("$mintUrl$MINT_ENDPOINT/bolt11") {
+                method = HttpMethod.Post
+                contentType(ContentType.Application.Json)
+                setBody(mintingRequest)
+            }
+        }.await()
+        client.close()
+
+        val mintResponse: MintResponse = response.body()
+
+        processBlindedSignaturesResponse(preMintBundle, mintResponse)
+    }
 
     // TODO: This method doesn't handle mint errors yet.
     // Note: We don't persist the quote in the database. The client must pay the quote and call the mint again while
