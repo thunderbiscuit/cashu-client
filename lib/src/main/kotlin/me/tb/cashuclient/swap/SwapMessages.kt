@@ -6,8 +6,16 @@
 package me.tb.cashuclient.swap
 
 import kotlinx.serialization.Serializable
+import me.tb.cashuclient.types.BlindedMessage
 import me.tb.cashuclient.types.BlindedSignature
 import me.tb.cashuclient.types.BlindedSignaturesResponse
+import me.tb.cashuclient.types.Proof
+
+@Serializable
+public data class SwapRequest(
+    public val inputs: List<Proof>,
+    public val outputs: List<BlindedMessage>
+)
 
 // TODO: The MintResponse and SwapResponse are the same class. We can clean this up.
 
