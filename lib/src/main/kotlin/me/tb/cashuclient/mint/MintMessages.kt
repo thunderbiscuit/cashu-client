@@ -8,6 +8,8 @@ package me.tb.cashuclient.mint
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import me.tb.cashuclient.types.BlindedMessage
+import me.tb.cashuclient.types.BlindedSignature
+import me.tb.cashuclient.types.BlindedSignaturesResponse
 
 /**
  * This is the object sent to the mint endpoint and consists of a list of blinded messages to sign.
@@ -24,3 +26,13 @@ public data class MintRequest(
     @SerialName("quote") val quoteId: String,
     val outputs: List<BlindedMessage>
 )
+
+/**
+ * This is the object returned by the mint endpoint and consists of a list of blinded signatures.
+ *
+ * @property signatures List of blinded signatures.
+ */
+@Serializable
+public data class MintResponse(
+    override val signatures: List<BlindedSignature>
+) : BlindedSignaturesResponse

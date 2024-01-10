@@ -11,6 +11,12 @@ import kotlinx.serialization.Serializable
 import me.tb.cashuclient.types.PaymentRequestSerializer
 
 @Serializable
+public data class MintQuoteRequest(
+    public val amount: ULong,
+    public val unit: String,
+)
+
+@Serializable
 public data class MintQuoteResponse(
     @SerialName("quote") public val quoteId: String,
     @Serializable(with = PaymentRequestSerializer::class) public val request: PaymentRequest,
