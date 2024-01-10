@@ -18,3 +18,5 @@ public const val MINT_QUOTE_STATUS_ENDPOINT: String = "/v1/mint/quote/bolt11/"
 public const val MINT_ENDPOINT: String = "/v1/mint/"
 
 public const val MELT_QUOTE_ENDPOINT: String = "/v1/melt/quote/"
+
+public const val INFO_ENDPOINT: String = "/v1/info"

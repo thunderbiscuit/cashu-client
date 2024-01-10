@@ -35,7 +35,7 @@ import me.tb.cashuclient.melt.MeltQuoteResponse
 import me.tb.cashuclient.melt.MeltRequest
 import me.tb.cashuclient.melt.MeltResponse
 import me.tb.cashuclient.melt.PreMeltBundle
-import me.tb.cashuclient.mint.MintQuoteData
+import me.tb.cashuclient.types.MintQuoteData
 import me.tb.cashuclient.mint.MintQuoteRequest
 import me.tb.cashuclient.mint.MintQuoteResponse
 import me.tb.cashuclient.mint.MintRequest
@@ -46,6 +46,7 @@ import me.tb.cashuclient.swap.SwapResponse
 import me.tb.cashuclient.types.ActiveKeysetsResponse
 import me.tb.cashuclient.types.BlindedSignaturesResponse
 import me.tb.cashuclient.types.EcashUnit
+import me.tb.cashuclient.types.InfoResponse
 import me.tb.cashuclient.types.Keyset
 import me.tb.cashuclient.types.KeysetId
 import me.tb.cashuclient.types.PaymentMethod
@@ -62,6 +63,7 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
 public typealias NewAvailableDenominations = List<ULong>
+public typealias MintInfo = InfoResponse
 
 /**
  * A wallet handles all operations between a client and a mint. A single wallet is associated
@@ -203,44 +205,6 @@ public class Wallet(
         val mintQuoteResponse: MintQuoteResponse = response.body<MintQuoteResponse>()
         mintQuoteResponse
     }
-
-
-
-    // TODO: This method doesn't handle mint errors yet.
-    // TODO: Make sure we sanitize the logs
-    // TODO: I think this method could return Unit instead of InvoiceResponse and the client simply moves on to the next
-    //       step. The bolt11 invoice is stored in the database, ready to be given out to the user to pay.
-    // TODO: Test entries to the database
-    /**
-     * Initiate minting request with the mint for a given amount. The mint will return a bolt11 invoice the client must pay
-     * in order to proceed to the next step and request newly minted tokens.
-     */
-    // private fun requestFundingInvoice(amount: Satoshi, client: HttpClient): InvoiceResponse = runBlocking(Dispatchers.IO) {
-    //     // Part 1: call the mint and get a bolt11 invoice
-    //     val response = async {
-    //         client.request("$mintUrl/mint") {
-    //             method = HttpMethod.Get
-    //             url { parameters.append("amount", amount.sat.toString()) }
-    //         }
-    //     }.await()
-    //     client.close()
-    //
-    //     val fundingInvoiceResponse: InvoiceResponse = response.body()
-    //
-    //     // Part 2: add information to database
-    //     transaction(DBSettings.db) {
-    //         SchemaUtils.create(DBBolt11Payment)
-    //
-    //         // TODO: Think of what to do if the bolt11 invoice is already in the database
-    //         DBBolt11Payment.insert {
-    //             it[pr] = fundingInvoiceResponse.pr
-    //             it[hash] = fundingInvoiceResponse.hash
-    //             it[value] = amount.sat.toULong()
-    //         }
-    //     }
-    //
-    //     fundingInvoiceResponse
-    // }
 
     // ---------------------------------------------------------------------------------------------
     // Melt
@@ -444,6 +408,21 @@ public class Wallet(
     //     // 2. Do I have the correct denominations to build it?
     //     // 3. If not, call a swap first to acquire the correct denominations
     // }
+
+    // ---------------------------------------------------------------------------------------------
+    // Info
+    // ---------------------------------------------------------------------------------------------
+
+    public fun getInfo(): MintInfo = runBlocking(Dispatchers.IO) {
+        val client = createClient()
+        val response = async {
+            client.get("$mintUrl$INFO_ENDPOINT")
+        }.await()
+        client.close()
+
+        val mintInfo: InfoResponse = response.body<InfoResponse>()
+        mintInfo
+    }
 
     // ---------------------------------------------------------------------------------------------
     // Utilities

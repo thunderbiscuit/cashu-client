@@ -1,8 +1,8 @@
 # Readme
-⚠️ Do not use in production ⚠️  
+⚠️ Warning: This library is not ready for production use. ⚠️  
 <br>
 
-This is a library I am writing to learn more about the Cashu protocol. Nothing like attempting to code out a spec to learn! It's not meant for production use at the moment.
+This is a library I am writing to learn more about the Cashu protocol. It's not meant for production use at the moment.
 
 ## Outline
 This library is an implementation of the client side of the [Cashu specification] (i.e. it does not include mint software). It is written in Kotlin and is intended to be used in Kotlin Multiplatform projects. The API is still very much in development, and I am open to suggestions; see the [contribute](#contribute) section for more info on where I think I could use the most help. See the [issues] for discussion items and design decisions; issues and PRs are most welcome.
@@ -16,14 +16,14 @@ The main goals of this library are:
     - [x] NUT-04
     - [x] NUT-05
     - [x] NUT-06
-    - [ ] NUT-07
+    - [x] NUT-07
     - [ ] NUT-08
     - [ ] NUT-09
 - [ ] 2. Well tested
 - [ ] 3. Well documented
 - [ ] 4. Usable in KMP projects (JVM and iOS platforms)
 
-The library is not currently available on Maven Central and is certainly not production ready (hence the package name `me.tb`). If it ever grows into more than a personal side-project I would release under a different package name. 
+The library is not currently available on Maven Central and is certainly not production ready (hence the package name `me.tb`). If it ever grows into more than a personal side-project I would release under a different group ID. 
 
 To build locally and deploy to your local Maven repository, see the [build instructions](#build-instructions).
 

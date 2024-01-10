@@ -15,7 +15,7 @@ The main goals of this library are:
     - [x] NUT-04
     - [x] NUT-05
     - [x] NUT-06
-    - [ ] NUT-07
+    - [x] NUT-07
     - [ ] NUT-08
     - [ ] NUT-09
 - [ ] Well tested
