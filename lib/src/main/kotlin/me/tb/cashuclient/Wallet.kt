@@ -61,6 +61,7 @@ import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.slf4j.LoggerFactory
 
 public typealias NewAvailableDenominations = List<ULong>
 public typealias MintInfo = InfoResponse
@@ -79,6 +80,11 @@ public class Wallet(
     private val unit: EcashUnit,
 ) {
     public val inactiveKeysets: MutableList<Keyset> = mutableListOf()
+    private val logger = LoggerFactory.getLogger(Wallet::class.java)
+
+    init {
+        logger.info("Wallet initialized with mint url $mintUrl and unit '$unit'.")
+    }
 
     // ---------------------------------------------------------------------------------------------
     // Keysets

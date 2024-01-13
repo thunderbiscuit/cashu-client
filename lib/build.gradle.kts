@@ -46,9 +46,9 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.1")
 
     // Logging
-    // TODO: The logging needs work. Don't forget about it.
-    implementation("ch.qos.logback:logback-classic:1.4.5")
-
+    // TODO: The logging needs work.
+    implementation("org.slf4j:slf4j-api:1.7.30")
+    runtimeOnly("ch.qos.logback:logback-classic:1.4.12")
 
     // TODO: Why isn't this needed?
     // testImplementation(kotlin("test"))
