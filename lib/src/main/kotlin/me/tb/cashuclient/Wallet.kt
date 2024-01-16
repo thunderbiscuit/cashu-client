@@ -13,9 +13,9 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.logging.DEFAULT
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.plugins.logging.SIMPLE
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -96,6 +96,8 @@ public class Wallet(
     private fun addKeyset(keyset: Keyset) {
         val currentActiveKeyset = this.activeKeyset
         if (currentActiveKeyset != null) inactiveKeysets.add(currentActiveKeyset)
+        logger.info("Rotating keysets. Setting keyset ${keyset.keysetId.value} as the new active keyset.")
+
         this.activeKeyset = keyset
     }
 
@@ -104,6 +106,8 @@ public class Wallet(
      * Query the mint for the active [Keyset] and set it as the active keyset.
      */
     public fun getActiveKeyset(): Unit = runBlocking(Dispatchers.IO) {
+        logger.info("Getting active keyset from mint.")
+
         val client = createClient()
         val keyset = async {
             val response = client.get("$mintUrl$ACTIVE_KEYSET_ENDPOINT")
@@ -121,6 +125,8 @@ public class Wallet(
      * Query the mint for the [Keyset] associated with a given [KeysetId].
      */
     public fun getSpecificKeyset(keysetId: KeysetId): Keyset = runBlocking(Dispatchers.IO) {
+        logger.info("Getting specific keyset from mint.")
+
         val keysetIdHex: String = keysetId.value
         val client = createClient()
         val specificKeyset = async {
@@ -152,6 +158,8 @@ public class Wallet(
      * @param amount The total value to mint.
      */
     public fun mint(amount: Satoshi): Unit = runBlocking(Dispatchers.IO) {
+        logger.info("Requesting a mint.")
+
         val client = createClient()
         val scopedActiveKeyset = activeKeyset ?: throw Exception("The wallet must have an active keyset for the mint when attempting a mint operation.")
         val quote: MintQuoteData = requestMintQuote(amount, PaymentMethod.BOLT11)
@@ -183,6 +191,8 @@ public class Wallet(
     //       might pay an invoice and then get wiped out before calling the mint again, but if it doesn't know the quote
     //       id then it will not be able to prove to the mint that it paid the invoice.
     public fun requestMintQuote(amount: Satoshi, paymentMethod: PaymentMethod): MintQuoteData = runBlocking(Dispatchers.IO) {
+        logger.info("Requesting a mint quote for $amount satoshis.")
+
         val client = createClient()
         val mintQuoteRequest = MintQuoteRequest(amount.sat.toULong(), unit.toString())
 
@@ -194,8 +204,9 @@ public class Wallet(
             }
         }.await()
         client.close()
-        println("Response from mint: ${response.bodyAsText()}")
+
         val mintQuoteResponse: MintQuoteResponse = response.body<MintQuoteResponse>()
+        logger.info("Quote response: $mintQuoteResponse")
 
         MintQuoteData.fromMintQuoteResponse(amount, mintQuoteResponse)
     }
@@ -215,24 +226,6 @@ public class Wallet(
     // ---------------------------------------------------------------------------------------------
     // Melt
     // ---------------------------------------------------------------------------------------------
-
-    public fun requestMeltQuote(pr: PaymentRequest): MeltQuoteResponse = runBlocking(Dispatchers.IO) {
-        val client = createClient()
-        val meltQuoteRequest = MeltQuoteRequest(pr, EcashUnit.SAT)
-
-        val response = async {
-            client.post("$mintUrl${MELT_QUOTE_ENDPOINT}bolt11") {
-                method = HttpMethod.Post
-                contentType(ContentType.Application.Json)
-                setBody(meltQuoteRequest)
-            }
-        }.await()
-        client.close()
-        println("Response from mint: ${response.bodyAsText()}")
-        val meltQuoteResponse: MeltQuoteResponse = response.body<MeltQuoteResponse>()
-
-        meltQuoteResponse
-    }
 
     /**
      * Melting is exchanging tokens for lightning payments. The process is done in two communication rounds:
@@ -311,6 +304,26 @@ public class Wallet(
         }
     }
 
+    public fun requestMeltQuote(pr: PaymentRequest): MeltQuoteResponse = runBlocking(Dispatchers.IO) {
+        logger.info("Requesting a melt quote.")
+
+        val client = createClient()
+        val meltQuoteRequest = MeltQuoteRequest(pr, EcashUnit.SAT)
+
+        val response = async {
+            client.post("$mintUrl${MELT_QUOTE_ENDPOINT}bolt11") {
+                method = HttpMethod.Post
+                contentType(ContentType.Application.Json)
+                setBody(meltQuoteRequest)
+            }
+        }.await()
+        client.close()
+        println("Response from mint: ${response.bodyAsText()}")
+        val meltQuoteResponse: MeltQuoteResponse = response.body<MeltQuoteResponse>()
+
+        meltQuoteResponse
+    }
+
     private fun processMeltResponse(preMeltBundle: PreMeltBundle) {
         // TODO: Should we simply mark them as archived instead of deleting them? We could have a separate method for
         //       collecting the proofs that are archived and deleting them upon user request.
@@ -329,6 +342,8 @@ public class Wallet(
     // ---------------------------------------------------------------------------------------------
 
     private fun swap(availableForSwap: List<ULong>, requiredAmount: ULong): NewAvailableDenominations = runBlocking {
+        logger.info("Requesting a swap.")
+
         val client = createClient()
         val scopedActiveKeyset = activeKeyset ?: throw Exception("The wallet must have an active keyset for the mint when attempting a swap operation.")
         
@@ -420,6 +435,8 @@ public class Wallet(
     // ---------------------------------------------------------------------------------------------
 
     public fun getInfo(): MintInfo = runBlocking(Dispatchers.IO) {
+        logger.info("Getting info from mint.")
+
         val client = createClient()
         val response = async {
             client.get("$mintUrl$INFO_ENDPOINT")
@@ -452,7 +469,7 @@ public class Wallet(
             }
             // TODO: Is this the logging level we want? Better configuration would probably be nice.
             install(Logging) {
-                logger = Logger.DEFAULT
+                logger = Logger.SIMPLE
             }
         }
     }
