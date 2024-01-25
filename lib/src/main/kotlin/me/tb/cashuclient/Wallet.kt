@@ -304,6 +304,7 @@ public class Wallet(
         }
     }
 
+    // TODO: PaymentRequest.read() now returns a Try<PaymentRequest> so we need to handle the error case.
     public fun requestMeltQuote(pr: PaymentRequest): MeltQuoteResponse = runBlocking(Dispatchers.IO) {
         logger.info("Requesting a melt quote.")
 
