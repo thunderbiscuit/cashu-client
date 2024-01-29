@@ -28,8 +28,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
-import me.tb.cashuclient.db.DBProof
-import me.tb.cashuclient.db.DBSettings
+import me.tb.cashuclient.db.CashuDB
+import me.tb.cashuclient.db.SQLiteDB
 import me.tb.cashuclient.melt.MeltQuoteRequest
 import me.tb.cashuclient.melt.MeltQuoteResponse
 import me.tb.cashuclient.melt.MeltRequest
@@ -54,13 +54,6 @@ import me.tb.cashuclient.types.PreRequestBundle
 import me.tb.cashuclient.types.Proof
 import me.tb.cashuclient.types.SpecificKeysetResponse
 import me.tb.cashuclient.types.SwapRequired
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
 
 public typealias NewAvailableDenominations = List<ULong>
@@ -71,13 +64,15 @@ public typealias MintInfo = InfoResponse
  * with a single mint and a single unit.
  *
  * @param activeKeyset The [Keyset] that is currently active for the mint.
- * @param mintUrl The URL of the mint.
- * @param unit The underlying unit used with the ecash tokens for this wallet.
+ * @param mintUrl      The URL of the mint.
+ * @param unit         The underlying unit used with the ecash tokens for this wallet.
+ * @param db           The implementation of [CashuDB] used for this wallet (by default, a [SQLiteDB]).
  */
 public class Wallet(
     public var activeKeyset: Keyset? = null,
     private val mintUrl: String,
     private val unit: EcashUnit,
+    private val db: CashuDB = SQLiteDB()
 ) {
     public val inactiveKeysets: MutableList<Keyset> = mutableListOf()
     private val logger = LoggerFactory.getLogger(Wallet::class.java)
@@ -245,13 +240,8 @@ public class Wallet(
             ?.truncateToSatoshi()
             ?.toULong() ?: throw Exception("Payment request does not have an amount.")
 
-        val availableProofs: List<ULong> = transaction(DBSettings.db) {
-            SchemaUtils.create(DBProof)
-            DBProof
-                .selectAll()
-                .map { it[DBProof.amount] }
-        }
-        val totalBalance = availableProofs.sum()
+        val availableNoteSizes: List<ULong> = db.spendableNoteSizes()
+        val totalBalance = availableNoteSizes.sum()
         val totalCost = quote.amount + quote.feeReserve
 
         if (totalBalance < totalCost) {
@@ -259,7 +249,7 @@ public class Wallet(
         }
 
         val isSwapRequired: SwapRequired = isSwapRequired(
-            allDenominations = availableProofs,
+            allDenominations = availableNoteSizes,
             targetAmount = quote.amount + quote.feeReserve
         )
 
@@ -331,10 +321,8 @@ public class Wallet(
         // TODO: Should we add the preimage to the database?
         // TODO: Does the inList operator delete _all_ proofs that match the condition or just the first one? In this
         //       case secrets should always be unique anyway, but still I'm wondering how the API works.
-        transaction(DBSettings.db) {
-            SchemaUtils.create(DBProof)
-            val secretsToDelete = preMeltBundle.proofs.map { it.secret }
-            DBProof.deleteWhere { secret inList secretsToDelete }
+        preMeltBundle.proofs.map { proof ->
+            db.deleteProof(proof)
         }
     }
 
@@ -399,24 +387,12 @@ public class Wallet(
                 script = null
             )
 
-            transaction(DBSettings.db) {
-                SchemaUtils.create(DBProof)
-
-                DBProof.insert {
-                    it[amount] = proof.amount
-                    it[secret] = proof.secret
-                    it[C] = proof.C
-                    it[id] = proof.id
-                    it[script] = null
-                }
-            }
+            db.insertProof(proof)
         }
 
         if (requestBundle is PreSwapBundle) {
-            SchemaUtils.create(DBProof)
             requestBundle.proofsToSwap.forEach { proof ->
-                val secretToDelete = proof.secret
-                DBProof.deleteWhere { secret eq secretToDelete }
+                db.deleteProof(proof)
             }
         }
     }
