@@ -20,7 +20,8 @@ public object PaymentRequestSerializer : KSerializer<PaymentRequest> {
         encoder.encodeString(value.write())
     }
 
+    // TODO: Handle the error case here
     override fun deserialize(decoder: Decoder): PaymentRequest {
-        return PaymentRequest.read(decoder.decodeString())
+        return PaymentRequest.read(decoder.decodeString()).get()
     }
 }
