@@ -11,8 +11,9 @@ import kotlinx.serialization.Serializable
 /**
  * The smallest unit of request to the mint endpoint.
  *
- * @param amount The amount of the token.
- * @param blindedSecret The blinded secret, referred to as B_ in the spec (NUT-00).
+ * @property amount The amount of the token.
+ * @property id     The identifier of the keyset from which we expect a signature,
+ * @property blindedSecret The blinded secret, referred to as B_ in the spec (NUT-00).
  */
 @Serializable
 public data class BlindedMessage(

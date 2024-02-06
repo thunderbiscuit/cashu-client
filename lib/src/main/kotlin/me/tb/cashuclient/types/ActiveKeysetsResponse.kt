@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
 /**
  * The data structure the mint returns when we ask for the active keysets.
  *
- * @param keysets A list of serializable [KeysetJson] objects.
+ * @property keysets A list of serializable [KeysetJson] objects.
  */
 @Serializable
 public data class ActiveKeysetsResponse(
@@ -22,6 +22,6 @@ public data class ActiveKeysetsResponse(
 /**
  * The data structure the mint returns when we ask for a specific keyset.
  *
- * @param keysets A list of serializable [KeysetJson] objects.
+ * @property keysets A list of serializable [KeysetJson] objects.
  */
 public typealias SpecificKeysetResponse = ActiveKeysetsResponse

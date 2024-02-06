@@ -62,10 +62,10 @@ public class PreMintBundle private constructor(
  * sign. Upon return, the signed [BlindedSignature]s are unblinded using the blindingFactor and, combined with the
  * secret, stored as [Proof]s in the database.
  *
- * @param amount The amount of the token.
- * @param secret The secret x that is used in hashToCurve(x) to create Y.
- * @param blindedSecret The blinded secret B_ that is sent to the mint.
- * @param blindingFactor The blinding factor r, private key of the point R that is used to blind key Y.
+ * @property amount The amount of the token.
+ * @property secret The secret x that is used in hashToCurve(x) to create Y.
+ * @property blindedSecret The blinded secret B_ that is sent to the mint.
+ * @property blindingFactor The blinding factor r, private key of the point R that is used to blind key Y.
  */
 public class PreMintItem private constructor(
     public override val amount: ULong,

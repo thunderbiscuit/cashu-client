@@ -8,7 +8,7 @@ package me.tb.cashuclient.types
 import kotlinx.serialization.Serializable
 
 /**
- * Cashu token.
+ * A proof as defined in NUT-00, also known as a Cashu note.
  */
 @Suppress("PropertyName")
 @Serializable

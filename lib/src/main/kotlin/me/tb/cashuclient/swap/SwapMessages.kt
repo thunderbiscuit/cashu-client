@@ -11,6 +11,12 @@ import me.tb.cashuclient.types.BlindedSignature
 import me.tb.cashuclient.types.BlindedSignaturesResponse
 import me.tb.cashuclient.types.Proof
 
+/**
+ * This is the object sent to the swap endpoint.
+ *
+ * @property inputs  List of proofs.
+ * @property outputs List of blinded messages.
+ */
 @Serializable
 public data class SwapRequest(
     public val inputs: List<Proof>,
@@ -20,9 +26,9 @@ public data class SwapRequest(
 // TODO: The MintResponse and SwapResponse are the same class. We can clean this up.
 
 /**
- * This is the object returned by the swap endpoint and consists of a list of blinded signatures.
+ * This is the response to the [SwapRequest].
  *
- * @param signatures List of blinded signatures.
+ * @property signatures List of blinded signatures.
  */
 @Serializable
 public data class SwapResponse(

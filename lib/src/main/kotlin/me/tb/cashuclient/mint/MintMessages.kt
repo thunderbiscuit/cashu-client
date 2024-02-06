@@ -14,11 +14,7 @@ import me.tb.cashuclient.types.BlindedSignaturesResponse
 /**
  * This is the object sent to the mint endpoint and consists of a list of blinded messages to sign.
  *
- * NOTE: These are called PostMintRequest in the specification (NUT-04). The reason why I changed the name is that
- *       PostMintRequest describes the object in terms of _when_ it is sent (after the "mint request" described in
- *       NUT-03 has been sent) rather than what it is. `MintRequest` is, IMO, a better name, and conveys its purpose,
- *       particularly when coupled with its sibling object, `MintResponse`.
- *
+ * @property quoteId The quote ID received from the mint in response to a [MintQuoteRequest].
  * @property outputs List of blinded messages to be signed.
  */
 @Serializable

@@ -35,7 +35,7 @@ import me.tb.cashuclient.melt.MeltQuoteResponse
 import me.tb.cashuclient.melt.MeltRequest
 import me.tb.cashuclient.melt.MeltResponse
 import me.tb.cashuclient.melt.PreMeltBundle
-import me.tb.cashuclient.types.MintQuoteData
+import me.tb.cashuclient.mint.MintQuoteData
 import me.tb.cashuclient.mint.MintQuoteRequest
 import me.tb.cashuclient.mint.MintQuoteResponse
 import me.tb.cashuclient.mint.MintRequest
@@ -65,7 +65,7 @@ public typealias MintInfo = InfoResponse
  *
  * @param activeKeyset The [Keyset] that is currently active for the mint.
  * @param mintUrl      The URL of the mint.
- * @param unit         The underlying unit used with the ecash tokens for this wallet.
+ * @param unit         The underlying unit used for the ecash tokens for this wallet.
  * @param db           The implementation of [CashuDB] used for this wallet (by default, a [SQLiteDB]).
  */
 public class Wallet(

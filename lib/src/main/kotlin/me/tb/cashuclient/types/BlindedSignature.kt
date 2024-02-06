@@ -10,11 +10,12 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * This is the smallest unit of data returned by the mint endpoint. These aggregate into a [me.tb.cashuclient.mint.MintResponse] object.
+ * This is the smallest unit of data returned by the mint endpoint. These aggregate into a
+ * [me.tb.cashuclient.mint.MintResponse] object.
  *
- * @param amount The value of the token.
- * @param id The id of the keyset of the mint that signed the token.
- * @param blindedKey The blinded signature, a point on the curve referred to as C_ in the spec (NUT-00).
+ * @property amount     The value of the token.
+ * @property id         The id of the keyset of the mint that signed the token.
+ * @property blindedKey The blinded signature, a point on the curve referred to as C_ in the spec (NUT-00).
  */
 @Serializable
 public data class BlindedSignature(

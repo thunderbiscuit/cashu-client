@@ -7,7 +7,7 @@ package me.tb.cashuclient
 
 import fr.acinq.bitcoin.Satoshi
 import fr.acinq.lightning.payment.PaymentRequest
-import me.tb.cashuclient.types.MintQuoteData
+import me.tb.cashuclient.mint.MintQuoteData
 import me.tb.cashuclient.types.EcashUnit
 import me.tb.cashuclient.types.Keyset
 import me.tb.cashuclient.types.KeysetId
