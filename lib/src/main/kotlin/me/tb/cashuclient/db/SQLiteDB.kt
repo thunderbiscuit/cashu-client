@@ -8,6 +8,9 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
+/**
+ * The default implementation of the [CashuDB] interface, using SQLite.
+ */
 public class SQLiteDB : CashuDB {
     override fun insertProof(proof: Proof) {
         transaction(DBSettings.db) {
