@@ -8,6 +8,8 @@ package me.tb.cashuclient
 import fr.acinq.bitcoin.PublicKey
 import fr.acinq.bitcoin.crypto.Digest
 import me.tb.cashuclient.types.SwapRequired
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.security.SecureRandom
 import kotlin.math.pow
 
@@ -33,19 +35,29 @@ public fun decomposeAmount(value: ULong): List<ULong> {
  */
 public fun hashToCurve(message: ByteArray): PublicKey {
     var point: PublicKey? = null
-    var msgToHash: ByteArray = message
+    val domainSeparator: ByteArray = "Secp256k1_HashToCurve_Cashu_".toByteArray()
+    val msgToHash: ByteArray = Digest.sha256().hash(domainSeparator + message)
+    var counter: UInt = 0u
 
     while (point == null || !point.isValid()) {
-        val hash: ByteArray = Digest.sha256().hash(msgToHash)
+        val counterBytes = ByteBuffer.allocate(Long.SIZE_BYTES)
+            .order(ByteOrder.LITTLE_ENDIAN)
+            .putLong(counter.toLong())
+            .array()
+            .take(4)
+            .toByteArray()
+
+        val hash: ByteArray = Digest.sha256().hash(msgToHash + counterBytes)
 
         // The point on the curve will always have an even y-coordinate (0x02 prefix)
         // For more information as to why this doesn't impact security, see: https://github.com/cashubtc/nuts/issues/24
         point = PublicKey(byteArrayOf(0x02) + hash)
 
-        // If the hash of the message did not produce a valid point, we hash the hash and try again
+        // If the hash of the message did not produce a valid point, we bump the counter and try again
         if (!point.isValid()) {
-            msgToHash = hash
+            counter++
         }
+        // TODO: If we've tried 2^32 times and still haven't found a valid point, we throw an error
     }
     return point
 }
