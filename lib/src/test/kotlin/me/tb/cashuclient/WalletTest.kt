@@ -7,6 +7,7 @@ package me.tb.cashuclient
 
 import fr.acinq.bitcoin.Satoshi
 import fr.acinq.lightning.payment.PaymentRequest
+import kotlinx.coroutines.test.runTest
 import me.tb.cashuclient.mint.MintQuoteData
 import me.tb.cashuclient.types.EcashUnit
 import me.tb.cashuclient.types.Keyset
@@ -100,7 +101,7 @@ class WalletTest {
     // }
 
     @Test
-    fun `Wallet successfully updates active keyset from mint after requesting it`() {
+    fun `Wallet successfully updates active keyset from mint after requesting it`() = runTest {
         val jsonString = """{"1":"03142715675faf8da1ecc4d51e0b9e539fa0d52fdd96ed60dbe99adb15d6b05ad9"}"""
         val smallKeyset = Keyset.fromJson(jsonString)
         val wallet = Wallet(activeKeyset = smallKeyset, mintUrl = "https://testnut.cashu.space", unit = EcashUnit.SAT)
@@ -122,7 +123,7 @@ class WalletTest {
     }
 
     @Test
-    fun `Wallet adds old keyset to list of inactive keysets`() {
+    fun `Wallet adds old keyset to list of inactive keysets`() = runTest {
         val jsonString = """{"1":"03142715675faf8da1ecc4d51e0b9e539fa0d52fdd96ed60dbe99adb15d6b05ad9"}"""
         val smallKeyset = Keyset.fromJson(jsonString)
         val wallet = Wallet(activeKeyset = smallKeyset, mintUrl = "https://testnut.cashu.space", unit = EcashUnit.SAT)
@@ -137,7 +138,7 @@ class WalletTest {
     }
 
     @Test
-    fun `Wallet can request specific keyset from mint`() {
+    fun `Wallet can request specific keyset from mint`() = runTest {
         val jsonString = """{"1":"03142715675faf8da1ecc4d51e0b9e539fa0d52fdd96ed60dbe99adb15d6b05ad9"}"""
         val smallKeyset = Keyset.fromJson(jsonString)
         val wallet = Wallet(
@@ -156,7 +157,7 @@ class WalletTest {
 
     @Ignore("There are no mainnet or testnet mints that implement the v1 endpoints yet")
     @Test
-    fun `Wallet can request a mint quote`() {
+    fun `Wallet can request a mint quote`() = runTest {
         // val wallet: Wallet = Wallet(mintUrl = "https://8333.space:3338", unit = EcashUnit.SAT)
         // val wallet: Wallet = Wallet(mintUrl = "https://legend.lnbits.com/cashu/api", unit = EcashUnit.SAT)
         val wallet = Wallet(mintUrl = "https://testnut.cashu.space", unit = EcashUnit.SAT)
@@ -169,7 +170,7 @@ class WalletTest {
 
     @Ignore("There are no mainnet or testnet mints that implement the v1 endpoints yet")
     @Test
-    fun `Wallet can check the status quote for mint`() {
+    fun `Wallet can check the status quote for mint`() = runTest {
         // mutinynet.mocksha.cash uses signet, which the ACINQ library doesn't support yet
         // val wallet: Wallet = Wallet(mintUrl = "https://mutinynet.moksha.cash:3338", unit = EcashUnit.SAT)
 
@@ -192,7 +193,7 @@ class WalletTest {
 
     @Ignore("Find a way to produce a valid testnet payment request for unit tests")
     @Test
-    fun `Wallet can request a melt quote`() {
+    fun `Wallet can request a melt quote`() = runTest {
         val wallet: Wallet = Wallet(mintUrl = "https://testnut.cashu.space", unit = EcashUnit.SAT)
         val paymentRequest = PaymentRequest.read("LNBC10U1P3PJ257PP5YZTKWJCZ5FTL5LAXKAV23ZMZEKAW37ZK6KMV80PK4XAEV5QHTZ7QDPDWD3XGER9WD5KWM36YPRX7U3QD36KUCMGYP282ETNV3SHJCQZPGXQYZ5VQSP5USYC4LK9CHSFP53KVCNVQ456GANH60D89REYKDNGSMTJ6YW3NHVQ9QYYSSQJCEWM5CJWZ4A6RFJX77C490YCED6PEMK0UPKXHY89CMM7SCT66K8GNEANWYKZGDRWRFJE69H9U5U0W57RRCSYSAS7GADWMZXC8C6T0SPJAZUP6").get()
         val quote = wallet.requestMeltQuote(paymentRequest)
@@ -200,7 +201,7 @@ class WalletTest {
     }
 
     @Test
-    fun `Wallet can request mint info`() {
+    fun `Wallet can request mint info`() = runTest {
         val wallet: Wallet = Wallet(mintUrl = "https://testnut.cashu.space", unit = EcashUnit.SAT)
         val mintInfo = wallet.getInfo()
         // println(mintInfo)

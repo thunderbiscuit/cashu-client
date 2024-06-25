@@ -25,8 +25,7 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import me.tb.cashuclient.db.CashuDB
 import me.tb.cashuclient.db.SQLiteDB
@@ -100,17 +99,15 @@ public class Wallet(
     /**
      * Query the mint for the active [Keyset] and set it as the active keyset.
      */
-    public fun getActiveKeyset(): Unit = runBlocking(Dispatchers.IO) {
+    public suspend fun getActiveKeyset(): Unit = withContext(Dispatchers.IO) {
         logger.info("Getting active keyset from mint.")
 
         val client = createClient()
-        val keyset = async {
-            val response = client.get("$mintUrl$ACTIVE_KEYSET_ENDPOINT")
-            val activeKeysetsResponse = response.body<ActiveKeysetsResponse>()
+        val response = client.get("$mintUrl$ACTIVE_KEYSET_ENDPOINT")
+        val activeKeysetsResponse = response.body<ActiveKeysetsResponse>()
 
-            // TODO: I'm not sure why there can be multiple active keysets at the same time. Open issue on specs repo.
-            activeKeysetsResponse.keysets.first().toKeyset()
-        }.await()
+        // TODO: I'm not sure why there can be multiple active keysets at the same time. Open issue on specs repo.
+        val keyset = activeKeysetsResponse.keysets.first().toKeyset()
         client.close()
         addKeyset(keyset)
     }
@@ -119,20 +116,18 @@ public class Wallet(
     /**
      * Query the mint for the [Keyset] associated with a given [KeysetId].
      */
-    public fun getSpecificKeyset(keysetId: KeysetId): Keyset = runBlocking(Dispatchers.IO) {
+    public suspend fun getSpecificKeyset(keysetId: KeysetId): Keyset = withContext(Dispatchers.IO) {
         logger.info("Getting specific keyset from mint.")
 
         val keysetIdHex: String = keysetId.value
         val client = createClient()
-        val specificKeyset = async {
-            // val response = client.get("$mintUrl$SPECIFIC_KEYSET_PATH$keysetIdHex").bodyAsText()
-            // val mintResponse = Json.decodeFromString(ActiveKeysetsResponse.serializer(), response)
-            val response = client.get("$mintUrl$SPECIFIC_KEYSET_ENDPOINT$keysetIdHex")
-            val specificKeysetResponse: SpecificKeysetResponse = response.body<SpecificKeysetResponse>()
+        // val response = client.get("$mintUrl$SPECIFIC_KEYSET_PATH$keysetIdHex").bodyAsText()
+        // val mintResponse = Json.decodeFromString(ActiveKeysetsResponse.serializer(), response)
+        val response = client.get("$mintUrl$SPECIFIC_KEYSET_ENDPOINT$keysetIdHex")
+        val specificKeysetResponse: SpecificKeysetResponse = response.body<SpecificKeysetResponse>()
 
-            // TODO: There should only be one keyset in the response it feels odd that the spec requires an array
-            specificKeysetResponse.keysets.first().toKeyset()
-        }.await()
+        // TODO: There should only be one keyset in the response it feels odd that the spec requires an array
+        val specificKeyset = specificKeysetResponse.keysets.first().toKeyset()
         client.close()
         specificKeyset
     }
@@ -152,7 +147,7 @@ public class Wallet(
      *
      * @param amount The total value to mint.
      */
-    public fun mint(amount: Satoshi): Unit = runBlocking(Dispatchers.IO) {
+    public suspend fun mint(amount: Satoshi): Unit = withContext(Dispatchers.IO) {
         logger.info("Requesting a mint.")
 
         val client = createClient()
@@ -166,13 +161,11 @@ public class Wallet(
         )
         val mintingRequest: MintRequest = preMintBundle.buildMintRequest()
 
-        val response = async {
-            client.post("$mintUrl$MINT_ENDPOINT/bolt11") {
-                method = HttpMethod.Post
-                contentType(ContentType.Application.Json)
-                setBody(mintingRequest)
-            }
-        }.await()
+        val response = client.post("$mintUrl$MINT_ENDPOINT/bolt11") {
+            method = HttpMethod.Post
+            contentType(ContentType.Application.Json)
+            setBody(mintingRequest)
+        }
         client.close()
 
         val mintResponse: MintResponse = response.body()
@@ -185,19 +178,17 @@ public class Wallet(
     //       keeping the quote in memory, otherwise simply request a new quote. This is not optimal because a client
     //       might pay an invoice and then get wiped out before calling the mint again, but if it doesn't know the quote
     //       id then it will not be able to prove to the mint that it paid the invoice.
-    public fun requestMintQuote(amount: Satoshi, paymentMethod: PaymentMethod): MintQuoteData = runBlocking(Dispatchers.IO) {
+    public suspend fun requestMintQuote(amount: Satoshi, paymentMethod: PaymentMethod): MintQuoteData = withContext(Dispatchers.IO) {
         logger.info("Requesting a mint quote for $amount satoshis.")
 
         val client = createClient()
         val mintQuoteRequest = MintQuoteRequest(amount.sat.toULong(), unit.toString())
 
-        val response = async {
-            client.post("$mintUrl$MINT_QUOTE_ENDPOINT$paymentMethod") {
-                method = HttpMethod.Post
-                contentType(ContentType.Application.Json)
-                setBody(mintQuoteRequest)
-            }
-        }.await()
+        val response = client.post("$mintUrl$MINT_QUOTE_ENDPOINT$paymentMethod") {
+            method = HttpMethod.Post
+            contentType(ContentType.Application.Json)
+            setBody(mintQuoteRequest)
+        }
         client.close()
 
         val mintQuoteResponse: MintQuoteResponse = response.body<MintQuoteResponse>()
@@ -206,12 +197,10 @@ public class Wallet(
         MintQuoteData.fromMintQuoteResponse(amount, mintQuoteResponse)
     }
 
-    public fun checkMintQuoteStatus(quoteId: String): MintQuoteResponse = runBlocking(Dispatchers.IO) {
+    public suspend fun checkMintQuoteStatus(quoteId: String): MintQuoteResponse = withContext(Dispatchers.IO) {
         val client = createClient()
 
-        val response = async {
-            client.get("$mintUrl$MINT_QUOTE_STATUS_ENDPOINT$quoteId")
-        }.await()
+        val response = client.get("$mintUrl$MINT_QUOTE_STATUS_ENDPOINT$quoteId")
         client.close()
         println("Response from the mint regarding quote status: ${response.bodyAsText()}")
         val mintQuoteResponse: MintQuoteResponse = response.body<MintQuoteResponse>()
@@ -229,7 +218,7 @@ public class Wallet(
      *
      * @param paymentRequest The lightning payment request.
      */
-    public fun melt(paymentRequest: PaymentRequest): Unit = runBlocking(Dispatchers.IO) {
+    public suspend fun melt(paymentRequest: PaymentRequest): Unit = withContext(Dispatchers.IO) {
         val client = createClient()
 
         val quote: MeltQuoteResponse = requestMeltQuote(paymentRequest)
@@ -273,13 +262,11 @@ public class Wallet(
         val preMeltBundle: PreMeltBundle = PreMeltBundle.create(finalListOfProofs, quote.quoteId)
         val meltRequest: MeltRequest = preMeltBundle.buildMeltRequest()
 
-        val response = async {
-            client.post("$mintUrl/melt") {
-                method = HttpMethod.Post
-                contentType(ContentType.Application.Json)
-                setBody(meltRequest)
-            }
-        }.await()
+        val response = client.post("$mintUrl/melt") {
+            method = HttpMethod.Post
+            contentType(ContentType.Application.Json)
+            setBody(meltRequest)
+        }
         client.close()
 
         val responseString: String = response.body<String>()
@@ -295,19 +282,17 @@ public class Wallet(
     }
 
     // TODO: PaymentRequest.read() now returns a Try<PaymentRequest> so we need to handle the error case.
-    public fun requestMeltQuote(pr: PaymentRequest): MeltQuoteResponse = runBlocking(Dispatchers.IO) {
+    public suspend fun requestMeltQuote(pr: PaymentRequest): MeltQuoteResponse = withContext(Dispatchers.IO) {
         logger.info("Requesting a melt quote.")
 
         val client = createClient()
         val meltQuoteRequest = MeltQuoteRequest(pr, EcashUnit.SAT)
 
-        val response = async {
-            client.post("$mintUrl${MELT_QUOTE_ENDPOINT}bolt11") {
-                method = HttpMethod.Post
-                contentType(ContentType.Application.Json)
-                setBody(meltQuoteRequest)
-            }
-        }.await()
+        val response = client.post("$mintUrl${MELT_QUOTE_ENDPOINT}bolt11") {
+            method = HttpMethod.Post
+            contentType(ContentType.Application.Json)
+            setBody(meltQuoteRequest)
+        }
         client.close()
         println("Response from mint: ${response.bodyAsText()}")
         val meltQuoteResponse: MeltQuoteResponse = response.body<MeltQuoteResponse>()
@@ -330,7 +315,7 @@ public class Wallet(
     // Swap
     // ---------------------------------------------------------------------------------------------
 
-    private fun swap(availableForSwap: List<ULong>, requiredAmount: ULong): NewAvailableDenominations = runBlocking {
+    private suspend fun swap(availableForSwap: List<ULong>, requiredAmount: ULong): NewAvailableDenominations = withContext(Dispatchers.IO) {
         logger.info("Requesting a swap.")
 
         val client = createClient()
@@ -339,13 +324,11 @@ public class Wallet(
         val preSwapRequestBundle = PreSwapBundle.create(availableForSwap, requiredAmount, scopedActiveKeyset.keysetId)
         val swapRequest = preSwapRequestBundle.buildSwapRequest()
 
-        val response = async {
-            client.post("$mintUrl$SWAP_ENDPOINT") {
-                method = HttpMethod.Post
-                contentType(ContentType.Application.Json)
-                setBody(swapRequest)
-            }
-        }.await()
+        val response = client.post("$mintUrl$SWAP_ENDPOINT") {
+            method = HttpMethod.Post
+            contentType(ContentType.Application.Json)
+            setBody(swapRequest)
+        }
         client.close()
 
         val swapResponse: SwapResponse = response.body()
@@ -411,13 +394,11 @@ public class Wallet(
     // Info
     // ---------------------------------------------------------------------------------------------
 
-    public fun getInfo(): MintInfo = runBlocking(Dispatchers.IO) {
+    public suspend fun getInfo(): MintInfo = withContext(Dispatchers.IO) {
         logger.info("Getting info from mint.")
 
         val client = createClient()
-        val response = async {
-            client.get("$mintUrl$INFO_ENDPOINT")
-        }.await()
+        val response = client.get("$mintUrl$INFO_ENDPOINT")
         client.close()
 
         val mintInfo: InfoResponse = response.body<InfoResponse>()
