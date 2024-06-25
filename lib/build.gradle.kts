@@ -45,9 +45,7 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.1")
 
     // Logging
-    // TODO: The logging needs work.
-    implementation("org.slf4j:slf4j-api:1.7.30")
-    runtimeOnly("ch.qos.logback:logback-classic:1.4.12")
+    implementation("co.touchlab:kermit:2.0.4")
 
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
 }

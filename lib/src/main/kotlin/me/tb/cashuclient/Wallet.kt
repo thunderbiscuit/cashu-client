@@ -53,7 +53,6 @@ import me.tb.cashuclient.types.PreRequestBundle
 import me.tb.cashuclient.types.Proof
 import me.tb.cashuclient.types.SpecificKeysetResponse
 import me.tb.cashuclient.types.SwapRequired
-import org.slf4j.LoggerFactory
 
 public typealias NewAvailableDenominations = List<ULong>
 public typealias MintInfo = InfoResponse
@@ -74,10 +73,10 @@ public class Wallet(
     private val db: CashuDB = SQLiteDB()
 ) {
     public val inactiveKeysets: MutableList<Keyset> = mutableListOf()
-    private val logger = LoggerFactory.getLogger(Wallet::class.java)
+    private val logger = co.touchlab.kermit.Logger.withTag(Wallet::class.java.name)
 
     init {
-        logger.info("Wallet initialized with mint url $mintUrl and unit '$unit'.")
+        logger.i("Wallet initialized with mint url $mintUrl and unit '$unit'.")
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -90,7 +89,7 @@ public class Wallet(
     private fun addKeyset(keyset: Keyset) {
         val currentActiveKeyset = this.activeKeyset
         if (currentActiveKeyset != null) inactiveKeysets.add(currentActiveKeyset)
-        logger.info("Rotating keysets. Setting keyset ${keyset.keysetId.value} as the new active keyset.")
+        logger.i("Rotating keysets. Setting keyset ${keyset.keysetId.value} as the new active keyset.")
 
         this.activeKeyset = keyset
     }
@@ -100,7 +99,7 @@ public class Wallet(
      * Query the mint for the active [Keyset] and set it as the active keyset.
      */
     public suspend fun getActiveKeyset(): Unit = withContext(Dispatchers.IO) {
-        logger.info("Getting active keyset from mint.")
+        logger.i("Getting active keyset from mint.")
 
         val client = createClient()
         val response = client.get("$mintUrl$ACTIVE_KEYSET_ENDPOINT")
@@ -117,7 +116,7 @@ public class Wallet(
      * Query the mint for the [Keyset] associated with a given [KeysetId].
      */
     public suspend fun getSpecificKeyset(keysetId: KeysetId): Keyset = withContext(Dispatchers.IO) {
-        logger.info("Getting specific keyset from mint.")
+        logger.i("Getting specific keyset from mint.")
 
         val keysetIdHex: String = keysetId.value
         val client = createClient()
@@ -148,7 +147,7 @@ public class Wallet(
      * @param amount The total value to mint.
      */
     public suspend fun mint(amount: Satoshi): Unit = withContext(Dispatchers.IO) {
-        logger.info("Requesting a mint.")
+        logger.i("Requesting a mint.")
 
         val client = createClient()
         val scopedActiveKeyset = activeKeyset ?: throw Exception("The wallet must have an active keyset for the mint when attempting a mint operation.")
@@ -179,7 +178,7 @@ public class Wallet(
     //       might pay an invoice and then get wiped out before calling the mint again, but if it doesn't know the quote
     //       id then it will not be able to prove to the mint that it paid the invoice.
     public suspend fun requestMintQuote(amount: Satoshi, paymentMethod: PaymentMethod): MintQuoteData = withContext(Dispatchers.IO) {
-        logger.info("Requesting a mint quote for $amount satoshis.")
+        logger.i("Requesting a mint quote for $amount satoshis.")
 
         val client = createClient()
         val mintQuoteRequest = MintQuoteRequest(amount.sat.toULong(), unit.toString())
@@ -192,7 +191,7 @@ public class Wallet(
         client.close()
 
         val mintQuoteResponse: MintQuoteResponse = response.body<MintQuoteResponse>()
-        logger.info("Quote response: $mintQuoteResponse")
+        logger.i("Quote response: $mintQuoteResponse")
 
         MintQuoteData.fromMintQuoteResponse(amount, mintQuoteResponse)
     }
@@ -283,7 +282,7 @@ public class Wallet(
 
     // TODO: PaymentRequest.read() now returns a Try<PaymentRequest> so we need to handle the error case.
     public suspend fun requestMeltQuote(pr: PaymentRequest): MeltQuoteResponse = withContext(Dispatchers.IO) {
-        logger.info("Requesting a melt quote.")
+        logger.i("Requesting a melt quote.")
 
         val client = createClient()
         val meltQuoteRequest = MeltQuoteRequest(pr, EcashUnit.SAT)
@@ -316,7 +315,7 @@ public class Wallet(
     // ---------------------------------------------------------------------------------------------
 
     private suspend fun swap(availableForSwap: List<ULong>, requiredAmount: ULong): NewAvailableDenominations = withContext(Dispatchers.IO) {
-        logger.info("Requesting a swap.")
+        logger.i("Requesting a swap.")
 
         val client = createClient()
         val scopedActiveKeyset = activeKeyset ?: throw Exception("The wallet must have an active keyset for the mint when attempting a swap operation.")
@@ -395,7 +394,7 @@ public class Wallet(
     // ---------------------------------------------------------------------------------------------
 
     public suspend fun getInfo(): MintInfo = withContext(Dispatchers.IO) {
-        logger.info("Getting info from mint.")
+        logger.i("Getting info from mint.")
 
         val client = createClient()
         val response = client.get("$mintUrl$INFO_ENDPOINT")
