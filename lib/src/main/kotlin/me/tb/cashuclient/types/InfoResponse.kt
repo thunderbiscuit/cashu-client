@@ -21,8 +21,14 @@ public data class InfoResponse(
 )
 
 @Serializable
+public data class Method(
+    val method: String,
+    val unit: String
+)
+
+@Serializable
 public data class Nut(
-    val methods: List<List<String>>? = null,
+    val methods: List<Method>? = null,
     val disabled: Boolean? = null,
     val supported: Boolean? = null
 )
