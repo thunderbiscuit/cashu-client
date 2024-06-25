@@ -2,14 +2,15 @@
  * Copyright 2023 thunderbiscuit and contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the ./LICENSE.txt file.
  */
- 
+
 package me.tb.cashuclient.types
 
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import fr.acinq.bitcoin.PublicKey
 import fr.acinq.bitcoin.crypto.Digest
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.util.SortedMap
 
 /**
@@ -59,7 +60,8 @@ public class Keyset(
      * @throws Exception if no key is found for the given token value.
      */
     public fun getKey(tokenValue: ULong): PublicKey {
-        return sortedKeyset[tokenValue] ?: throw Exception("No key found in keyset for token value $tokenValue")
+        return sortedKeyset[tokenValue]
+            ?: throw Exception("No key found in keyset for token value $tokenValue")
     }
 
     public fun toKeysetJson(): KeysetJson {
@@ -97,12 +99,12 @@ public class Keyset(
          * @return The [Keyset] created from the JSON string.
          */
         public fun fromJson(jsonString: String): Keyset {
-            val typeToken = object : TypeToken<Map<String, String>>() {}.type
-            val json: Map<String, String> = Gson().fromJson(jsonString, typeToken)
+            val jsonObject = Json.parseToJsonElement(jsonString).jsonObject
 
-            val keyset: Map<ULong, PublicKey> = json.map { (tokenValue, publicKeyHex) ->
+            val keyset: Map<ULong, PublicKey> = jsonObject.entries.associate { (tokenValue, element) ->
+                val publicKeyHex = element.jsonPrimitive.content
                 tokenValue.toULong() to PublicKey.fromHex(publicKeyHex)
-            }.toMap()
+            }
 
             return Keyset(keyset)
         }
