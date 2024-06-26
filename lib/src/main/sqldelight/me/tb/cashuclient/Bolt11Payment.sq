@@ -1,0 +1,12 @@
+--  A table to store payment requests made by the mint.
+--  Once paid, these will later be used to request tokens.
+CREATE TABLE Bolt11Payment(
+    -- The hash here is really just a secret payment ID used to identify the payment between the mint and the client.
+    hash    TEXT NOT NULL PRIMARY KEY,
+    pr      TEXT NOT NULL,
+    value   INTEGER NOT NULL
+);
+
+-- Using a hash as the identifier for an amount requested and invoice paid, return said amount
+getAmountByHash:
+SELECT value FROM Bolt11Payment WHERE hash = ?;

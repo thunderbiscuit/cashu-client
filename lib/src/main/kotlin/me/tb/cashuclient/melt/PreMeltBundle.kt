@@ -2,17 +2,14 @@
  * Copyright 2023 thunderbiscuit and contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the ./LICENSE.txt file.
  */
- 
+
 package me.tb.cashuclient.melt
 
 import fr.acinq.lightning.payment.PaymentRequest
-import me.tb.cashuclient.db.DBProof
-import me.tb.cashuclient.db.DBSettings
+import me.tb.cashuclient.db.CashuDB
+import me.tb.cashuclient.melt.PreMeltBundle.Companion.create
 import me.tb.cashuclient.types.BlindedMessage
 import me.tb.cashuclient.types.Proof
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.transactions.transaction
 
 /**
  * The data bundle Alice must create prior to communicating with the mint requesting a melt.
@@ -26,7 +23,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 public class PreMeltBundle private constructor(
     public val proofs: List<Proof>,
     private val quoteId: String,
-    public val potentialChangeOutputs: List<BlindedMessage>? = null
+    public val potentialChangeOutputs: List<BlindedMessage>? = null,
 ) {
     /**
      * Builds a [MeltRequest] from the data in this bundle. This [MeltRequest] is the data structure that is then
@@ -49,31 +46,16 @@ public class PreMeltBundle private constructor(
          */
         public fun create(
             denominationsToUse: List<ULong>,
-            quoteId: String
+            quoteId: String,
+            db: CashuDB,
         ): PreMeltBundle {
-
-            DBSettings.db
             // Check if we have these amounts in the database
-            val proofs: List<Proof> = denominationsToUse.map { amt ->
-                transaction {
-                    SchemaUtils.create(DBProof)
-                    val proof: Proof? = DBProof.select { DBProof.amount eq amt }.firstOrNull()?.let {
-                        Proof(
-                            amount = it[DBProof.amount],
-                            id = it[DBProof.id],
-                            secret = it[DBProof.secret],
-                            C = it[DBProof.C],
-                            script = it[DBProof.script]
-                        )
-                    }
-                    proof ?: throw Exception("No proof found for amount $amt")
-                }
-            }
+            val proofs = db.proofsForAmounts(denominationsToUse)
 
             return PreMeltBundle(
                 proofs = proofs,
                 quoteId = quoteId,
-                potentialChangeOutputs = null
+                potentialChangeOutputs = null,
             )
         }
     }

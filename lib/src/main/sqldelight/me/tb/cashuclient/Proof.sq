@@ -1,0 +1,19 @@
+CREATE TABLE Proof(
+    id      TEXT NOT NULL PRIMARY KEY,
+    amount  INTEGER NOT NULL,
+    secret  TEXT NOT NULL,
+    C       TEXT NOT NULL,
+    script  TEXT
+);
+
+selectAll:
+SELECT * FROM Proof;
+
+selectProofByAmount:
+SELECT * FROM Proof WHERE amount = ?;
+
+insert:
+INSERT INTO Proof(id, amount, secret, C, script) VALUES(?, ?, ?, ?, ?);
+
+deleteById:
+DELETE FROM Proof WHERE id = ?;
