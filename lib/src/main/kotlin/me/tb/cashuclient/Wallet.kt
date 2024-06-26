@@ -258,7 +258,7 @@ public class Wallet(
             "The sum of tokens to spend must be equal to the sum of the required tokens."
         }
 
-        val preMeltBundle: PreMeltBundle = PreMeltBundle.create(finalListOfProofs, quote.quoteId)
+        val preMeltBundle: PreMeltBundle = PreMeltBundle.create(finalListOfProofs, quote.quoteId, db)
         val meltRequest: MeltRequest = preMeltBundle.buildMeltRequest()
 
         val response = client.post("$mintUrl/melt") {
@@ -320,7 +320,7 @@ public class Wallet(
         val client = createClient()
         val scopedActiveKeyset = activeKeyset ?: throw Exception("The wallet must have an active keyset for the mint when attempting a swap operation.")
         
-        val preSwapRequestBundle = PreSwapBundle.create(availableForSwap, requiredAmount, scopedActiveKeyset.keysetId)
+        val preSwapRequestBundle = PreSwapBundle.create(db, availableForSwap, requiredAmount, scopedActiveKeyset.keysetId)
         val swapRequest = preSwapRequestBundle.buildSwapRequest()
 
         val response = client.post("$mintUrl$SWAP_ENDPOINT") {

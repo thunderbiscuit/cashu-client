@@ -2,24 +2,20 @@
  * Copyright 2023 thunderbiscuit and contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the ./LICENSE.txt file.
  */
- 
+
 package me.tb.cashuclient.swap
 
 import fr.acinq.bitcoin.PrivateKey
 import fr.acinq.bitcoin.PublicKey
+import me.tb.cashuclient.db.CashuDB
 import me.tb.cashuclient.types.KeysetId
 import me.tb.cashuclient.types.Secret
-import me.tb.cashuclient.db.DBProof
-import me.tb.cashuclient.db.DBSettings
 import me.tb.cashuclient.decomposeAmount
 import me.tb.cashuclient.types.BlindedMessage
 import me.tb.cashuclient.types.BlindingData
 import me.tb.cashuclient.types.PreRequestBundle
 import me.tb.cashuclient.types.Proof
 import me.tb.cashuclient.types.createBlindingData
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.transactions.transaction
 
 /**
  * The data bundle Alice must create prior to communicating with the mint requesting a swap. Once the mint sends a
@@ -60,6 +56,7 @@ public class PreSwapBundle private constructor(
          * @param keysetId         The [KeysetId] of the keyset the wallet expects will be signing the [BlindedMessage]s.
          */
         public fun create(
+            db: CashuDB,
             availableForSwap: List<ULong>,
             requiredAmount: ULong,
             keysetId: KeysetId,
@@ -78,7 +75,8 @@ public class PreSwapBundle private constructor(
 
             val requiredDenominations: List<ULong> = decomposeAmount(requiredAmount)
             val overPayment: ULong = runningTotal - requiredAmount
-            val changeDenominations: List<ULong> = if (overPayment > 0uL) decomposeAmount(overPayment) else emptyList()
+            val changeDenominations: List<ULong> =
+                if (overPayment > 0uL) decomposeAmount(overPayment) else emptyList()
 
             val requestDenominations = requiredDenominations + changeDenominations
 
@@ -89,25 +87,7 @@ public class PreSwapBundle private constructor(
             }
 
             // Go get a proof in the database for the denominations required
-            DBSettings.db
-            val proofs: List<Proof> = transaction {
-                SchemaUtils.create(DBProof)
-
-                denominationsToSwap.map { denomination ->
-                    DBProof.select { DBProof.amount eq denomination }
-                        .limit(1)
-                        .firstOrNull()
-                        ?.let {
-                            Proof(
-                                amount = it[DBProof.amount],
-                                id = it[DBProof.id],
-                                secret = it[DBProof.secret],
-                                C = it[DBProof.C],
-                                script = it[DBProof.script]
-                            )
-                        } ?: throw Exception("No proof found for denomination $denomination")
-                }
-            }
+            val proofs = db.proofsForAmounts(denominationsToSwap)
 
             return PreSwapBundle(proofs, preSwapItem, keysetId)
         }

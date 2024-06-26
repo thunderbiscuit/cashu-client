@@ -14,6 +14,15 @@ plugins {
     id("org.gradle.java-library")
     id("org.gradle.maven-publish")
     id("org.jetbrains.dokka") version "1.9.10"
+    id("app.cash.sqldelight") version "2.0.2"
+}
+
+sqldelight {
+    databases {
+        create("Database") {
+            packageName.set("me.tb.cashulib")
+        }
+    }
 }
 
 repositories {
@@ -28,14 +37,8 @@ dependencies {
     implementation("fr.acinq.secp256k1:secp256k1-kmp-jni-jvm-darwin:0.11.0")
     implementation("fr.acinq.lightning:lightning-kmp:1.5.15")
 
-    // Exposed
-    implementation("org.jetbrains.exposed:exposed-core:0.40.1")
-    implementation("org.jetbrains.exposed:exposed-dao:0.40.1")
-    implementation("org.jetbrains.exposed:exposed-jdbc:0.40.1")
-    implementation("org.jetbrains.exposed:exposed-java-time:0.40.1")
-
-    // SQLite
-    implementation("org.xerial:sqlite-jdbc:3.42.0.0")
+    // SqlDelight
+    implementation("app.cash.sqldelight:sqlite-driver:2.0.2")
 
     // Ktor
     implementation("io.ktor:ktor-client-core-jvm:2.3.1")

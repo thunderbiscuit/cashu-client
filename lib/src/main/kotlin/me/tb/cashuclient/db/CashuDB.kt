@@ -25,6 +25,17 @@ public interface CashuDB {
     public fun insertProof(proof: Proof): Unit
 
     /**
+     * Returns proofs for requested amounts.
+     *
+     * This method is used to query the database for proofs associated with the specified amounts.
+     * Assumes that proofs are present in the database for the requested amounts, otherwise
+     * throws an exception.
+     *
+     * @param amounts - A list of [ULong] representing the amounts for which proofs are requested.
+     */
+    public fun proofsForAmounts(amounts: List<ULong>): List<Proof>
+
+    /**
      * Deletes a proof from the database.
      *
      * This method removes the specified proof object from the database. Use with caution, as this
